@@ -73,3 +73,9 @@ chainlit.md
 
 # Build caches
 .cache/
+
+# Claude Code
+.claude/
+
+# Windows artifacts
+nul
