@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Founder Note Color Palette - Cashmere & Royal Garnet */
+    /* Cashmere: #F4EDE3 - warm off-white */
+    /* Royal Garnet: #90353D - rich deep red */
+    
+    --cashmere: 34 38% 92%;
+    --cashmere-dark: 34 30% 88%;
+    --royal-garnet: 355 48% 39%;
+    --royal-garnet-light: 355 45% 50%;
+    --royal-garnet-dark: 355 50% 30%;
+    
+    /* Primary - Royal Garnet for key actions */
+    --primary: 355 48% 39%;
+    --primary-foreground: 34 38% 97%;
+    
+    /* Background - Cashmere warm off-white */
+    --background: 34 38% 95%;
+    --foreground: 355 30% 15%;
+    
+    /* Card - slightly lighter cashmere */
+    --card: 34 40% 97%;
+    --card-foreground: 355 30% 15%;
+    
+    /* Popover */
+    --popover: 34 40% 97%;
+    --popover-foreground: 355 30% 15%;
+    
+    /* Secondary - darker cashmere */
+    --secondary: 34 30% 90%;
+    --secondary-foreground: 355 30% 20%;
+    
+    /* Muted */
+    --muted: 34 25% 88%;
+    --muted-foreground: 355 15% 45%;
+    
+    /* Accent - warm tinted */
+    --accent: 34 35% 85%;
+    --accent-foreground: 355 30% 20%;
+    
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders - warm subtle */
+    --border: 34 25% 82%;
+    --input: 34 25% 82%;
+    --ring: 355 48% 39%;
+    
+    /* Sidebar - slightly darker cashmere */
+    --sidebar: 34 35% 93%;
+    --sidebar-foreground: 355 30% 15%;
+    
+    --radius: 0.5rem;
+    
+    /* Premium Tag Colors - Warm toned to match palette */
+    --tag-garnet: 355 40% 94%;
+    --tag-garnet-text: 355 50% 35%;
+    --tag-garnet-border: 355 35% 85%;
+    --tag-garnet-dot: 355 48% 45%;
+    
+    --tag-sage: 140 25% 90%;
+    --tag-sage-text: 140 30% 30%;
+    --tag-sage-border: 140 25% 80%;
+    --tag-sage-dot: 140 30% 42%;
+    
+    --tag-amber: 38 55% 90%;
+    --tag-amber-text: 32 55% 32%;
+    --tag-amber-border: 38 50% 80%;
+    --tag-amber-dot: 38 60% 45%;
+    
+    --tag-terracotta: 18 50% 92%;
+    --tag-terracotta-text: 18 50% 35%;
+    --tag-terracotta-border: 18 45% 82%;
+    --tag-terracotta-dot: 18 55% 50%;
+    
+    --tag-slate: 215 15% 91%;
+    --tag-slate-text: 215 20% 38%;
+    --tag-slate-border: 215 15% 82%;
+    --tag-slate-dot: 215 20% 50%;
+    
+    --tag-plum: 320 30% 92%;
+    --tag-plum-text: 320 35% 38%;
+    --tag-plum-border: 320 25% 82%;
+    --tag-plum-dot: 320 35% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .transition-smooth {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  /* Gentle waveform animation */
+  @keyframes waveform {
+    0%, 100% { height: 4px; opacity: 0.5; }
+    50% { height: 12px; opacity: 1; }
+  }
+  
+  .waveform-bar {
+    animation: waveform 0.8s ease-in-out infinite;
+  }
+  
+  .waveform-bar:nth-child(1) { animation-delay: 0s; }
+  .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+  .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+  .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+  .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+  
+  /* Smooth slide up */
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Gentle appear animation */
+  @keyframes gentle-appear {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  
+  .animate-record-appear {
+    animation: gentle-appear 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Calm fade in */
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Subtle breathing animation for focus elements */
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  
+  .animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
+  }
+  
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px -2px rgba(144, 53, 61, 0.12);
+  }
+  
+  /* Premium Tag Styles - Warm palette */
+  .tag-garnet {
+    background-color: hsl(var(--tag-garnet));
+    color: hsl(var(--tag-garnet-text));
+    border: 1px solid hsl(var(--tag-garnet-border));
+  }
+  .tag-garnet-dot {
+    background-color: hsl(var(--tag-garnet-dot));
+  }
+  
+  .tag-sage {
+    background-color: hsl(var(--tag-sage));
+    color: hsl(var(--tag-sage-text));
+    border: 1px solid hsl(var(--tag-sage-border));
+  }
+  .tag-sage-dot {
+    background-color: hsl(var(--tag-sage-dot));
+  }
+  
+  .tag-amber {
+    background-color: hsl(var(--tag-amber));
+    color: hsl(var(--tag-amber-text));
+    border: 1px solid hsl(var(--tag-amber-border));
+  }
+  .tag-amber-dot {
+    background-color: hsl(var(--tag-amber-dot));
+  }
+  
+  .tag-terracotta {
+    background-color: hsl(var(--tag-terracotta));
+    color: hsl(var(--tag-terracotta-text));
+    border: 1px solid hsl(var(--tag-terracotta-border));
+  }
+  .tag-terracotta-dot {
+    background-color: hsl(var(--tag-terracotta-dot));
+  }
+  
+  .tag-slate {
+    background-color: hsl(var(--tag-slate));
+    color: hsl(var(--tag-slate-text));
+    border: 1px solid hsl(var(--tag-slate-border));
+  }
+  .tag-slate-dot {
+    background-color: hsl(var(--tag-slate-dot));
+  }
+  
+  .tag-plum {
+    background-color: hsl(var(--tag-plum));
+    color: hsl(var(--tag-plum-text));
+    border: 1px solid hsl(var(--tag-plum-border));
+  }
+  .tag-plum-dot {
+    background-color: hsl(var(--tag-plum-dot));
+  }
+  
+  /* Legacy tag aliases for backward compatibility */
+  .tag-sapphire { @apply tag-garnet; }
+  .tag-sapphire-dot { @apply tag-garnet-dot; }
+  .tag-emerald { @apply tag-sage; }
+  .tag-emerald-dot { @apply tag-sage-dot; }
+  .tag-rose { @apply tag-terracotta; }
+  .tag-rose-dot { @apply tag-terracotta-dot; }
+  .tag-violet { @apply tag-plum; }
+  .tag-violet-dot { @apply tag-plum-dot; }
+  
+  /* Folder colors - warm garnet */
+  .folder-icon {
+    @apply text-[hsl(355,48%,45%)];
+  }
+  
+  /* Highlighted text in transcriptions */
+  .highlight-date {
+    @apply text-[hsl(355,48%,40%)] font-medium;
+  }
+  
+  .highlight-name {
+    @apply text-[hsl(355,35%,35%)] font-medium;
+  }
+}
