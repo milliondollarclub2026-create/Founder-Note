@@ -49,46 +49,62 @@ const GoogleIcon = () => (
 // Brand Panel - Left side of auth page
 const BrandPanel = () => {
   return (
-    <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background relative overflow-hidden">
-      {/* Floating orbs with slow drift animation */}
+    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, hsl(355 48% 39% / 0.12) 0%, hsl(34 38% 92% / 0.9) 40%, hsl(355 48% 39% / 0.06) 100%)'
+      }}
+    >
+      {/* Warm garnet orbs */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute bottom-32 right-16 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-float-slow-delayed" />
-        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-primary/8 rounded-full blur-2xl animate-float-slow-delayed-2" />
+        <div className="absolute top-12 left-12 w-80 h-80 rounded-full blur-[80px] auth-orb-1"
+          style={{ background: 'hsl(355 48% 39% / 0.25)' }} />
+        <div className="absolute bottom-16 right-8 w-[28rem] h-[28rem] rounded-full blur-[100px] auth-orb-2"
+          style={{ background: 'hsl(355 48% 50% / 0.18)' }} />
+        <div className="absolute top-[40%] left-[25%] w-56 h-56 rounded-full blur-[60px] auth-orb-3"
+          style={{ background: 'hsl(25 45% 50% / 0.18)' }} />
       </div>
 
-      {/* Subtle dot grid overlay */}
+      {/* Dot grid overlay */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage: 'radial-gradient(circle, hsl(355 48% 39%) 1px, transparent 1px)',
           backgroundSize: '24px 24px'
         }}
       />
 
-      {/* Content with glass effect */}
+      {/* Content */}
       <div className="relative z-10 flex flex-col justify-center px-16 max-w-lg mx-auto">
-        <div className="mb-8 backdrop-blur-[2px]">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 backdrop-blur-sm border border-primary/10 shadow-sm">
+        <div className="mb-10">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-7 border shadow-sm"
+            style={{
+              background: 'hsl(355 48% 39% / 0.08)',
+              borderColor: 'hsl(355 48% 39% / 0.15)',
+              backdropFilter: 'blur(4px)'
+            }}
+          >
             <Sparkles className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-3xl font-semibold text-foreground/90 mb-4 leading-tight">
-            Capture your thoughts,<br />let AI do the rest.
+          <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight tracking-[-0.01em]">
+            Speak your ideas.<br />
+            <span className="text-primary/80">{"We'll organize them."}</span>
           </h2>
-          <p className="text-base text-muted-foreground/70 leading-relaxed">
-            Voice notes that transform into organized insights. Built for founders who think fast and build faster.
+          <p className="text-[15px] text-muted-foreground leading-relaxed max-w-sm">
+            Built for founders who think faster than they type.
           </p>
         </div>
 
-        {/* Feature highlights */}
+        {/* Feature highlights — specific, concrete */}
         <div className="space-y-4">
           {[
-            'One-tap voice capture',
-            'AI-powered summaries & insights',
-            'Smart organization with tags & folders',
+            'Record a thought, get back structured notes',
+            'AI summaries and key points, instantly',
+            'Search and chat across everything you capture',
           ].map((feature, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-foreground/70" style={{ animationDelay: `${i * 80}ms` }}>
-              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <div key={i} className="flex items-center gap-3 text-sm text-foreground/75 animate-fade-in" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}>
+              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'hsl(355 48% 39% / 0.1)' }}
+              >
                 <Check className="w-3 h-3 text-primary" />
               </div>
               {feature}
@@ -162,18 +178,31 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome to Founder Note</h1>
+        <h1 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Welcome back</h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to start capturing your thoughts
+          Sign in to continue
         </p>
       </div>
-      
-      {/* Google Sign In - Primary CTA */}
+
+      {/* Google Sign In - Primary CTA with presence */}
       <Button
         onClick={onGoogleSignIn}
         disabled={isLoading}
         variant="outline"
-        className="w-full h-14 rounded-xl text-base font-medium border-2 border-border bg-card shadow-sm hover:border-primary/30 hover:shadow-md hover:bg-card transition-all gap-3"
+        className="w-full h-14 rounded-xl text-base font-medium border-2 gap-3 transition-all duration-200"
+        style={{
+          background: 'hsl(34 45% 97%)',
+          borderColor: 'hsl(34 30% 76%)',
+          boxShadow: '0 1px 3px hsl(34 30% 50% / 0.12)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(355 48% 39% / 0.35)'
+          e.currentTarget.style.boxShadow = '0 4px 14px -2px hsl(355 48% 39% / 0.14)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'hsl(34 30% 76%)'
+          e.currentTarget.style.boxShadow = '0 1px 3px hsl(34 30% 50% / 0.12)'
+        }}
       >
         {isLoading ? (
           <Loader2 className="w-5 h-5 animate-spin" />
@@ -182,34 +211,46 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
         )}
         Continue with Google
       </Button>
-      
+
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border/50" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground/60">or</span>
+          <span className="px-3 text-muted-foreground/60" style={{ background: 'hsl(34 45% 96%)' }}>or</span>
         </div>
       </div>
-      
-      {/* Email Sign In - Secondary */}
+
+      {/* Email Sign In - Secondary with darker default, garnet on hover */}
       <Button
         onClick={onEmailSignIn}
-        variant="ghost"
-        className="w-full h-12 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all gap-2"
+        variant="outline"
+        className="w-full h-12 rounded-xl text-sm font-medium gap-2 transition-all duration-200 border-border/60"
+        style={{
+          background: 'hsl(355 30% 25%)',
+          color: 'hsl(34 38% 95%)',
+          borderColor: 'hsl(355 30% 20%)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'hsl(355 48% 39%)'
+          e.currentTarget.style.borderColor = 'hsl(355 48% 35%)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'hsl(355 30% 25%)'
+          e.currentTarget.style.borderColor = 'hsl(355 30% 20%)'
+        }}
       >
         <Mail className="w-4 h-4" />
         Sign in with email
       </Button>
-      
+
       {/* Privacy note */}
       <p className="text-[11px] text-muted-foreground/50 text-center leading-relaxed">
         By continuing, you agree to our{' '}
         <span className="underline underline-offset-2 text-muted-foreground/70 hover:text-primary cursor-pointer transition-colors">Terms of Service</span>
         {' '}and{' '}
         <span className="underline underline-offset-2 text-muted-foreground/70 hover:text-primary cursor-pointer transition-colors">Privacy Policy</span>.
-        We only access your email for authentication.
       </p>
     </div>
   )
@@ -237,9 +278,9 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
       
       if (authError) {
         if (authError.message.includes('Email not confirmed')) {
-          setError('Please verify your email before logging in. Check your inbox.')
+          setError('Your email hasn\'t been verified yet. Check your inbox for the confirmation link.')
         } else if (authError.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please try again.')
+          setError('Incorrect email or password. Please try again.')
         } else {
           setError(authError.message)
         }
@@ -286,18 +327,15 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Sign in with email</h2>
-        <p className="text-sm text-muted-foreground">
-          Enter your credentials to continue
-        </p>
+        <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Sign in with email</h2>
       </div>
-      
+
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6 animate-fade-in">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm font-medium text-foreground/80">Email</label>
@@ -316,14 +354,14 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
             />
           </div>
         </div>
-        
+
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="text-sm font-medium text-foreground/80">Password</label>
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+              className="text-xs text-primary/80 hover:text-primary font-medium transition-colors"
             >
               Forgot password?
             </button>
@@ -337,23 +375,28 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
             autoComplete="current-password"
           />
         </div>
-        
+
         <Button
           type="submit"
           disabled={isLoading}
           className="w-full h-12 rounded-xl font-medium text-base mt-2"
         >
-          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign in'}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Signing in...
+            </span>
+          ) : 'Sign in'}
         </Button>
       </form>
-      
+
       <p className="text-sm text-muted-foreground text-center mt-6">
-        {"Don't have an account? "}
+        {"New here? "}
         <button
           onClick={onSignupSwitch}
           className="text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          Sign up
+          Create an account
         </button>
       </p>
     </div>
@@ -395,7 +438,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
       
       if (authError) {
         if (authError.message.includes('already registered')) {
-          setError('An account with this email already exists. Try logging in.')
+          setError('An account with this email already exists. Try signing in.')
         } else {
           setError(authError.message)
         }
@@ -421,18 +464,18 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Create your account</h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Create your account</h2>
         <p className="text-sm text-muted-foreground">
-          Start capturing your thoughts in seconds
+          Your best ideas start as spoken words.
         </p>
       </div>
-      
+
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6 animate-fade-in">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="name" className="text-sm font-medium text-foreground/80">Full name</label>
@@ -451,7 +494,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
             />
           </div>
         </div>
-        
+
         <div className="space-y-1.5">
           <label htmlFor="signup-email" className="text-sm font-medium text-foreground/80">Email</label>
           <div className="relative">
@@ -469,7 +512,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
             />
           </div>
         </div>
-        
+
         <div className="space-y-1.5">
           <label htmlFor="signup-password" className="text-sm font-medium text-foreground/80">Password</label>
           <PasswordInput
@@ -483,23 +526,28 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
           />
           <PasswordStrength password={password} />
         </div>
-        
+
         <Button
           type="submit"
           disabled={isLoading || !passwordValidation.isValid}
           className="w-full h-12 rounded-xl font-medium text-base mt-2"
         >
-          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create account'}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Creating account...
+            </span>
+          ) : 'Create account'}
         </Button>
       </form>
-      
+
       <p className="text-sm text-muted-foreground text-center mt-6">
         Already have an account?{' '}
         <button
           onClick={onLoginSwitch}
           className="text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          Sign in
+          Sign in instead
         </button>
       </p>
     </div>
@@ -510,29 +558,33 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
 const VerificationSentView = ({ email, onBackToLogin }) => {
   return (
     <div className="text-center animate-fade-in">
-      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+        style={{ background: 'hsl(355 48% 39% / 0.08)' }}
+      >
         <Mail className="w-8 h-8 text-primary" />
       </div>
-      
-      <h2 className="text-2xl font-semibold text-foreground mb-2">Check your email</h2>
+
+      <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Check your inbox</h2>
       <p className="text-muted-foreground mb-2">
         {"We've sent a verification link to"}
       </p>
       <p className="text-foreground font-medium mb-6">{email}</p>
-      
-      <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 mb-6">
+
+      <div className="p-4 rounded-xl border mb-6"
+        style={{ background: 'hsl(34 30% 93% / 0.5)', borderColor: 'hsl(34 25% 82% / 0.6)' }}
+      >
         <p className="text-sm text-muted-foreground">
-          Click the link in the email to verify your account and get started.
+          Click the link in the email to verify your account.
         </p>
       </div>
-      
+
       <p className="text-xs text-muted-foreground/60 mb-4">
-          {"Didn't receive the email? Check your spam folder."}
+        {"Don't see it? Check your spam or promotions folder."}
       </p>
-      
+
       <button
         onClick={onBackToLogin}
-        className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+        className="text-sm text-primary/80 hover:text-primary font-medium transition-colors"
       >
         Back to sign in
       </button>
@@ -581,18 +633,18 @@ const ForgotPasswordForm = ({ onBack, onSuccess, animClass = 'animate-fade-in' }
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Reset your password</h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Reset your password</h2>
         <p className="text-sm text-muted-foreground">
-          {"Enter your email and we'll send you a reset link."}
+          {"Enter your email and we'll send a reset link."}
         </p>
       </div>
-      
+
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6 animate-fade-in">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="reset-email" className="text-sm font-medium text-foreground/80">Email</label>
@@ -611,13 +663,18 @@ const ForgotPasswordForm = ({ onBack, onSuccess, animClass = 'animate-fade-in' }
             />
           </div>
         </div>
-        
+
         <Button
           type="submit"
           disabled={isLoading}
           className="w-full h-12 rounded-xl font-medium text-base"
         >
-          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send reset link'}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Sending...
+            </span>
+          ) : 'Send reset link'}
         </Button>
       </form>
     </div>
@@ -628,25 +685,29 @@ const ForgotPasswordForm = ({ onBack, onSuccess, animClass = 'animate-fade-in' }
 const ResetSentView = ({ email, onBackToLogin }) => {
   return (
     <div className="text-center animate-fade-in">
-      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+        style={{ background: 'hsl(355 48% 39% / 0.08)' }}
+      >
         <Check className="w-8 h-8 text-primary" />
       </div>
-      
-      <h2 className="text-2xl font-semibold text-foreground mb-2">Check your email</h2>
+
+      <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">Reset link sent</h2>
       <p className="text-muted-foreground mb-2">
         {"We've sent a password reset link to"}
       </p>
       <p className="text-foreground font-medium mb-6">{email}</p>
-      
-      <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 mb-6">
+
+      <div className="p-4 rounded-xl border mb-6"
+        style={{ background: 'hsl(34 30% 93% / 0.5)', borderColor: 'hsl(34 25% 82% / 0.6)' }}
+      >
         <p className="text-sm text-muted-foreground">
-          Click the link in the email to reset your password. The link expires in 24 hours.
+          Click the link in the email to set a new password. The link expires in 24 hours.
         </p>
       </div>
-      
+
       <button
         onClick={onBackToLogin}
-        className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+        className="text-sm text-primary/80 hover:text-primary font-medium transition-colors"
       >
         Back to sign in
       </button>
@@ -734,25 +795,33 @@ function AuthPageContent() {
       <BrandPanel />
       
       {/* Auth Form Panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8"
+        style={{ background: 'linear-gradient(180deg, hsl(34 42% 92%) 0%, hsl(34 35% 89%) 100%)' }}
+      >
         <div className="w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+          <div className="flex items-center gap-2.5 mb-10">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">Founder Note</span>
+            <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
           </div>
-          
+
           {/* Error display */}
           {error && view === 'main' && (
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">
               {error}
             </div>
           )}
-          
+
           {/* Auth Card */}
-          <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-8 overflow-hidden">
+          <div className="rounded-2xl border shadow-lg p-8 overflow-hidden"
+            style={{
+              background: 'hsl(34 45% 96%)',
+              borderColor: 'hsl(34 30% 80%)',
+              boxShadow: '0 8px 32px -8px hsl(355 48% 39% / 0.08), 0 2px 6px hsl(34 30% 50% / 0.1)'
+            }}
+          >
             {view === 'main' && (
               <MainEntryView
                 onGoogleSignIn={handleGoogleSignIn}
