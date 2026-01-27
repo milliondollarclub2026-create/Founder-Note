@@ -350,24 +350,25 @@ export default function OnboardingPage() {
               </div>
               
               <div className="grid gap-3 mb-8">
-                {usageOptions.map(option => (
-                  <SelectableChip
-                    key={option.id}
-                    option={option}
-                    selected={usageSelections.includes(option.id)}
-                    onToggle={() => toggleUsage(option.id)}
-                  />
+                {usageOptions.map((option, i) => (
+                  <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
+                    <SelectableChip
+                      option={option}
+                      selected={usageSelections.includes(option.id)}
+                      onToggle={() => toggleUsage(option.id)}
+                    />
+                  </div>
                 ))}
               </div>
-              
+
               <div className="flex items-center justify-between">
-                <button 
+                <button
                   onClick={() => setStep(0)}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Back
                 </button>
-                <Button 
+                <Button
                   onClick={handleNext}
                   disabled={!canProceed()}
                   className="h-11 px-6 rounded-xl"
@@ -378,7 +379,7 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
-          
+
           {/* Step 2: AI Style Preferences */}
           {step === 2 && (
             <div className="p-8 md:p-10 animate-fade-in">
@@ -390,15 +391,16 @@ export default function OnboardingPage() {
                   Choose your preferred output styles — affects summaries, insights, and assistant behavior
                 </p>
               </div>
-              
+
               <div className="grid gap-3 mb-8">
-                {aiStyleOptions.map(option => (
-                  <SelectableChip
-                    key={option.id}
-                    option={option}
-                    selected={aiStyleSelections.includes(option.id)}
-                    onToggle={() => toggleAiStyle(option.id)}
-                  />
+                {aiStyleOptions.map((option, i) => (
+                  <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
+                    <SelectableChip
+                      option={option}
+                      selected={aiStyleSelections.includes(option.id)}
+                      onToggle={() => toggleAiStyle(option.id)}
+                    />
+                  </div>
                 ))}
               </div>
               
@@ -444,16 +446,6 @@ export default function OnboardingPage() {
         )}
       </div>
       
-      {/* CSS for animations */}
-      <style jsx global>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   )
 }

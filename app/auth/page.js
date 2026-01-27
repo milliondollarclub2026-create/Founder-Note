@@ -50,16 +50,26 @@ const GoogleIcon = () => (
 const BrandPanel = () => {
   return (
     <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background relative overflow-hidden">
-      {/* Subtle animated shapes */}
+      {/* Floating orbs with slow drift animation */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-32 right-16 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+        <div className="absolute top-20 left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute bottom-32 right-16 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-float-slow-delayed" />
+        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-primary/8 rounded-full blur-2xl animate-float-slow-delayed-2" />
       </div>
-      
-      {/* Content */}
+
+      {/* Subtle dot grid overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(355 48% 39%) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
+
+      {/* Content with glass effect */}
       <div className="relative z-10 flex flex-col justify-center px-16 max-w-lg mx-auto">
-        <div className="mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 backdrop-blur-sm border border-primary/10">
+        <div className="mb-8 backdrop-blur-[2px]">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 backdrop-blur-sm border border-primary/10 shadow-sm">
             <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-3xl font-semibold text-foreground/90 mb-4 leading-tight">
@@ -69,7 +79,7 @@ const BrandPanel = () => {
             Voice notes that transform into organized insights. Built for founders who think fast and build faster.
           </p>
         </div>
-        
+
         {/* Feature highlights */}
         <div className="space-y-4">
           {[
@@ -77,7 +87,7 @@ const BrandPanel = () => {
             'AI-powered summaries & insights',
             'Smart organization with tags & folders',
           ].map((feature, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-foreground/70">
+            <div key={i} className="flex items-center gap-3 text-sm text-foreground/70" style={{ animationDelay: `${i * 80}ms` }}>
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Check className="w-3 h-3 text-primary" />
               </div>
@@ -158,12 +168,12 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
         </p>
       </div>
       
-      {/* Google Sign In - Primary */}
+      {/* Google Sign In - Primary CTA */}
       <Button
         onClick={onGoogleSignIn}
         disabled={isLoading}
         variant="outline"
-        className="w-full h-14 rounded-xl text-base font-medium border-2 border-border hover:border-primary/30 hover:bg-secondary/50 transition-all gap-3"
+        className="w-full h-14 rounded-xl text-base font-medium border-2 border-border bg-card shadow-sm hover:border-primary/30 hover:shadow-md hover:bg-card transition-all gap-3"
       >
         {isLoading ? (
           <Loader2 className="w-5 h-5 animate-spin" />
@@ -195,7 +205,10 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
       
       {/* Privacy note */}
       <p className="text-[11px] text-muted-foreground/50 text-center leading-relaxed">
-        By continuing, you agree to our Terms of Service and Privacy Policy.
+        By continuing, you agree to our{' '}
+        <span className="underline underline-offset-2 text-muted-foreground/70 hover:text-primary cursor-pointer transition-colors">Terms of Service</span>
+        {' '}and{' '}
+        <span className="underline underline-offset-2 text-muted-foreground/70 hover:text-primary cursor-pointer transition-colors">Privacy Policy</span>.
         We only access your email for authentication.
       </p>
     </div>
@@ -203,7 +216,7 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
 }
 
 // Email Login Form
-const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch }) => {
+const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 'animate-fade-in' }) => {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -263,7 +276,7 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch }) => {
   }
   
   return (
-    <div className="animate-fade-in">
+    <div className={animClass}>
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -271,7 +284,7 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch }) => {
         <ArrowLeft className="w-4 h-4" />
         Back
       </button>
-      
+
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-foreground mb-2">Sign in with email</h2>
         <p className="text-sm text-muted-foreground">
@@ -348,7 +361,7 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch }) => {
 }
 
 // Email Signup Form
-const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess }) => {
+const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animate-fade-in' }) => {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -398,7 +411,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess }) => {
   }
   
   return (
-    <div className="animate-fade-in">
+    <div className={animClass}>
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -406,7 +419,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess }) => {
         <ArrowLeft className="w-4 h-4" />
         Back
       </button>
-      
+
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-foreground mb-2">Create your account</h2>
         <p className="text-sm text-muted-foreground">
@@ -528,7 +541,7 @@ const VerificationSentView = ({ email, onBackToLogin }) => {
 }
 
 // Forgot Password Form
-const ForgotPasswordForm = ({ onBack, onSuccess }) => {
+const ForgotPasswordForm = ({ onBack, onSuccess, animClass = 'animate-fade-in' }) => {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -558,7 +571,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }) => {
   }
   
   return (
-    <div className="animate-fade-in">
+    <div className={animClass}>
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -566,7 +579,7 @@ const ForgotPasswordForm = ({ onBack, onSuccess }) => {
         <ArrowLeft className="w-4 h-4" />
         Back
       </button>
-      
+
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-foreground mb-2">Reset your password</h2>
         <p className="text-sm text-muted-foreground">
@@ -646,10 +659,19 @@ function AuthPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [view, setView] = useState('main') // main, email-login, email-signup, verification, forgot, reset-sent
+  const [viewDirection, setViewDirection] = useState('forward') // forward or back
   const [verificationEmail, setVerificationEmail] = useState('')
   const [resetEmail, setResetEmail] = useState('')
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Navigate with direction tracking
+  const navigateTo = (newView, direction = 'forward') => {
+    setViewDirection(direction)
+    setView(newView)
+  }
+
+  const viewAnimClass = viewDirection === 'back' ? 'animate-slide-in-left' : 'animate-slide-in-right'
   
   // Check for error params from redirects
   useEffect(() => {
@@ -730,65 +752,58 @@ function AuthPageContent() {
           )}
           
           {/* Auth Card */}
-          <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-8">
+          <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-8 overflow-hidden">
             {view === 'main' && (
               <MainEntryView
                 onGoogleSignIn={handleGoogleSignIn}
-                onEmailSignIn={() => setView('email-login')}
+                onEmailSignIn={() => navigateTo('email-login', 'forward')}
                 isLoading={isGoogleLoading}
               />
             )}
-            
+
             {view === 'email-login' && (
               <EmailLoginForm
-                onBack={() => setView('main')}
-                onForgotPassword={() => setView('forgot')}
-                onSignupSwitch={() => setView('email-signup')}
+                onBack={() => navigateTo('main', 'back')}
+                onForgotPassword={() => navigateTo('forgot', 'forward')}
+                onSignupSwitch={() => navigateTo('email-signup', 'forward')}
+                animClass={viewAnimClass}
               />
             )}
-            
+
             {view === 'email-signup' && (
               <EmailSignupForm
-                onBack={() => setView('main')}
-                onLoginSwitch={() => setView('email-login')}
+                onBack={() => navigateTo('main', 'back')}
+                onLoginSwitch={() => navigateTo('email-login', 'back')}
                 onSuccess={handleSignupSuccess}
+                animClass={viewAnimClass}
               />
             )}
-            
+
             {view === 'verification' && (
               <VerificationSentView
                 email={verificationEmail}
-                onBackToLogin={() => setView('main')}
+                onBackToLogin={() => navigateTo('main', 'back')}
               />
             )}
-            
+
             {view === 'forgot' && (
               <ForgotPasswordForm
-                onBack={() => setView('email-login')}
+                onBack={() => navigateTo('email-login', 'back')}
                 onSuccess={handleResetSuccess}
+                animClass={viewAnimClass}
               />
             )}
-            
+
             {view === 'reset-sent' && (
               <ResetSentView
                 email={resetEmail}
-                onBackToLogin={() => setView('main')}
+                onBackToLogin={() => navigateTo('main', 'back')}
               />
             )}
           </div>
         </div>
       </div>
       
-      {/* CSS for animations */}
-      <style jsx global>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.25s ease-out;
-        }
-      `}</style>
     </div>
   )
 }

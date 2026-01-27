@@ -54,39 +54,20 @@
     /* Sidebar - slightly darker cashmere */
     --sidebar: 34 35% 93%;
     --sidebar-foreground: 355 30% 15%;
-    
+
+    /* Harmonized accent palette — warm-shifted to match Cashmere/Garnet */
+    --accent-amber: 38 70% 50%;
+    --accent-amber-light: 38 80% 94%;
+    --accent-amber-text: 30 60% 32%;
+    --accent-emerald: 158 40% 42%;
+    --accent-emerald-light: 158 40% 93%;
+    --accent-emerald-text: 158 45% 28%;
+    --accent-violet: 268 40% 52%;
+    --accent-violet-light: 268 30% 94%;
+    --accent-violet-text: 268 40% 32%;
+    --accent-info: 215 50% 50%;
+
     --radius: 0.5rem;
-    
-    /* Premium Tag Colors - Warm toned to match palette */
-    --tag-garnet: 355 40% 94%;
-    --tag-garnet-text: 355 50% 35%;
-    --tag-garnet-border: 355 35% 85%;
-    --tag-garnet-dot: 355 48% 45%;
-    
-    --tag-sage: 140 25% 90%;
-    --tag-sage-text: 140 30% 30%;
-    --tag-sage-border: 140 25% 80%;
-    --tag-sage-dot: 140 30% 42%;
-    
-    --tag-amber: 38 55% 90%;
-    --tag-amber-text: 32 55% 32%;
-    --tag-amber-border: 38 50% 80%;
-    --tag-amber-dot: 38 60% 45%;
-    
-    --tag-terracotta: 18 50% 92%;
-    --tag-terracotta-text: 18 50% 35%;
-    --tag-terracotta-border: 18 45% 82%;
-    --tag-terracotta-dot: 18 55% 50%;
-    
-    --tag-slate: 215 15% 91%;
-    --tag-slate-text: 215 20% 38%;
-    --tag-slate-border: 215 15% 82%;
-    --tag-slate-dot: 215 20% 50%;
-    
-    --tag-plum: 320 30% 92%;
-    --tag-plum-text: 320 35% 38%;
-    --tag-plum-border: 320 25% 82%;
-    --tag-plum-dot: 320 35% 50%;
   }
 }
 
@@ -94,28 +75,46 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
-  
+
+  /* Focus-visible accessibility ring — branded Royal Garnet */
+  :focus-visible {
+    outline: 2px solid hsl(355 48% 39% / 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid hsl(355 48% 39% / 0.4);
+    outline-offset: 0px;
+  }
+
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
   }
 }
 
@@ -127,18 +126,20 @@
   /* Gentle waveform animation */
   @keyframes waveform {
     0%, 100% { height: 4px; opacity: 0.5; }
-    50% { height: 12px; opacity: 1; }
+    50% { height: 16px; opacity: 1; }
   }
-  
+
   .waveform-bar {
     animation: waveform 0.8s ease-in-out infinite;
   }
-  
+
   .waveform-bar:nth-child(1) { animation-delay: 0s; }
   .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
   .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
   .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
-  .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+  .waveform-bar:nth-child(5) { animation-delay: 0.15s; }
+  .waveform-bar:nth-child(6) { animation-delay: 0.25s; }
+  .waveform-bar:nth-child(7) { animation-delay: 0.35s; }
   
   /* Smooth slide up */
   @keyframes slide-up {
@@ -160,100 +161,182 @@
     animation: gentle-appear 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
-  /* Calm fade in */
+  /* Calm fade in — standard entrance */
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(4px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  
+
   .animate-fade-in {
-    animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
+
+  /* Larger entrance for modals/panels */
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Scale-in for popovers/dropdowns */
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Slide in from right — for panel/detail view transitions */
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Slide in from left — for back navigation */
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Shimmer — skeleton loading placeholder */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--secondary)) 25%,
+      hsl(var(--muted) / 0.5) 50%,
+      hsl(var(--secondary)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Pulse glow — mic button ambient ring */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(355 48% 39% / 0.15); }
+    50% { box-shadow: 0 0 0 8px hsl(355 48% 39% / 0); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Pulse glow red — recording state */
+  @keyframes pulse-glow-red {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.2); }
+    50% { box-shadow: 0 0 0 10px hsl(0 72% 51% / 0); }
+  }
+
+  .animate-pulse-glow-red {
+    animation: pulse-glow-red 1.5s ease-in-out infinite;
+  }
+
+  /* Slow float — auth page background orbs */
+  @keyframes float-slow {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(10px, -15px) scale(1.02); }
+    50% { transform: translate(-5px, 10px) scale(0.98); }
+    75% { transform: translate(-10px, -5px) scale(1.01); }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 8s ease-in-out infinite;
+  }
+
+  .animate-float-slow-delayed {
+    animation: float-slow 10s ease-in-out infinite;
+    animation-delay: -3s;
+  }
+
+  .animate-float-slow-delayed-2 {
+    animation: float-slow 12s ease-in-out infinite;
+    animation-delay: -6s;
+  }
+
+  /* Star bounce — toggle animation */
+  @keyframes star-bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
+  .animate-star-bounce {
+    animation: star-bounce 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   /* Subtle breathing animation for focus elements */
   @keyframes breathe {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
   }
-  
+
   .animate-breathe {
     animation: breathe 3s ease-in-out infinite;
   }
-  
+
   /* Hover lift effect */
   .hover-lift {
     @apply transition-all duration-200;
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px -2px rgba(144, 53, 61, 0.12);
   }
-  
-  /* Premium Tag Styles - Warm palette */
-  .tag-garnet {
-    background-color: hsl(var(--tag-garnet));
-    color: hsl(var(--tag-garnet-text));
-    border: 1px solid hsl(var(--tag-garnet-border));
+
+  /* Hover lift with border glow — for note cards */
+  .hover-lift-glow {
+    @apply transition-all duration-200;
   }
-  .tag-garnet-dot {
-    background-color: hsl(var(--tag-garnet-dot));
+
+  .hover-lift-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px -4px rgba(144, 53, 61, 0.15),
+                0 0 0 1px rgba(144, 53, 61, 0.08);
   }
-  
-  .tag-sage {
-    background-color: hsl(var(--tag-sage));
-    color: hsl(var(--tag-sage-text));
-    border: 1px solid hsl(var(--tag-sage-border));
+
+  /* CTA shimmer — subscribe page */
+  @keyframes cta-shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
   }
-  .tag-sage-dot {
-    background-color: hsl(var(--tag-sage-dot));
+
+  .cta-shimmer {
+    position: relative;
+    overflow: hidden;
   }
-  
-  .tag-amber {
-    background-color: hsl(var(--tag-amber));
-    color: hsl(var(--tag-amber-text));
-    border: 1px solid hsl(var(--tag-amber-border));
+
+  .cta-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: cta-shimmer 3s ease-in-out infinite;
+    pointer-events: none;
   }
-  .tag-amber-dot {
-    background-color: hsl(var(--tag-amber-dot));
-  }
-  
-  .tag-terracotta {
-    background-color: hsl(var(--tag-terracotta));
-    color: hsl(var(--tag-terracotta-text));
-    border: 1px solid hsl(var(--tag-terracotta-border));
-  }
-  .tag-terracotta-dot {
-    background-color: hsl(var(--tag-terracotta-dot));
-  }
-  
-  .tag-slate {
-    background-color: hsl(var(--tag-slate));
-    color: hsl(var(--tag-slate-text));
-    border: 1px solid hsl(var(--tag-slate-border));
-  }
-  .tag-slate-dot {
-    background-color: hsl(var(--tag-slate-dot));
-  }
-  
-  .tag-plum {
-    background-color: hsl(var(--tag-plum));
-    color: hsl(var(--tag-plum-text));
-    border: 1px solid hsl(var(--tag-plum-border));
-  }
-  .tag-plum-dot {
-    background-color: hsl(var(--tag-plum-dot));
-  }
-  
-  /* Legacy tag aliases for backward compatibility */
-  .tag-sapphire { @apply tag-garnet; }
-  .tag-sapphire-dot { @apply tag-garnet-dot; }
-  .tag-emerald { @apply tag-sage; }
-  .tag-emerald-dot { @apply tag-sage-dot; }
-  .tag-rose { @apply tag-terracotta; }
-  .tag-rose-dot { @apply tag-terracotta-dot; }
-  .tag-violet { @apply tag-plum; }
-  .tag-violet-dot { @apply tag-plum-dot; }
   
   /* Folder colors - warm garnet */
   .folder-icon {

@@ -170,7 +170,7 @@ export default function SubscribePage() {
 
         {/* Pricing Card */}
         <div className="max-w-lg mx-auto">
-          <div className="bg-card rounded-3xl border-2 border-primary/20 shadow-xl overflow-hidden">
+          <div className="bg-card rounded-3xl border-2 border-primary/20 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]">
             {/* Card Header */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-8 py-6 text-center border-b border-border">
               <p className="text-sm font-medium text-primary uppercase tracking-wide mb-2">
@@ -197,7 +197,7 @@ export default function SubscribePage() {
                   { icon: Zap, text: 'Action item extraction & tracking' },
                   { icon: Shield, text: 'Secure cloud sync & backup' },
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <li key={i} className="flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}>
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <feature.icon className="w-4 h-4 text-primary" />
                     </div>
@@ -216,7 +216,7 @@ export default function SubscribePage() {
               <Button
                 onClick={handleSubscribe}
                 disabled={isProcessing}
-                className="w-full h-14 mt-8 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                className="w-full h-14 mt-8 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all cta-shimmer"
               >
                 {isProcessing ? (
                   <>
