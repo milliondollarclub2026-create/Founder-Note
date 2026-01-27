@@ -54,6 +54,16 @@ const BrandPanel = () => {
         background: 'linear-gradient(135deg, hsl(355 48% 39% / 0.12) 0%, hsl(34 38% 92% / 0.9) 40%, hsl(355 48% 39% / 0.06) 100%)'
       }}
     >
+      {/* Concentric expanding rings from center */}
+      <div className="absolute inset-0">
+        <div className="auth-ring auth-ring-1" />
+        <div className="auth-ring auth-ring-2" />
+        <div className="auth-ring auth-ring-3" />
+        <div className="auth-ring auth-ring-4" />
+        <div className="auth-ring auth-ring-5" />
+        <div className="auth-ring auth-ring-6" />
+      </div>
+
       {/* Warm garnet orbs */}
       <div className="absolute inset-0">
         <div className="absolute top-12 left-12 w-80 h-80 rounded-full blur-[80px] auth-orb-1"
