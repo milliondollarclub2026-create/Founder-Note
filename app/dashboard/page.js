@@ -1583,7 +1583,7 @@ export default function Dashboard() {
 
           {/* Next Steps — unified todos + intents (hidden in brain dump mode) */}
           {viewType === 'notes' && nextStepsItems.length > 0 && (
-            <div className="mt-4 animate-fade-in">
+            <div className="mt-4 animate-fade-in relative z-10">
               <button
                 onClick={() => setNextStepsExpanded(!nextStepsExpanded)}
                 className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
