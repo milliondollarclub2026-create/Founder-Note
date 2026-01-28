@@ -77,10 +77,10 @@ export async function GET(request) {
         } else if (existingProfile.subscription_status !== 'active') {
           return NextResponse.redirect(`${origin}/subscribe`)
         } else {
-          return NextResponse.redirect(`${origin}/`)
+          return NextResponse.redirect(`${origin}/dashboard`)
         }
       } else {
-        return NextResponse.redirect(`${origin}/`)
+        return NextResponse.redirect(`${origin}/dashboard`)
       }
     }
   }
