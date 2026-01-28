@@ -291,7 +291,22 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
         if (authError.message.includes('Email not confirmed')) {
           setError('Your email hasn\'t been verified yet. Check your inbox for the confirmation link.')
         } else if (authError.message.includes('Invalid login credentials')) {
-          setError('Incorrect email or password. Please try again.')
+          // Check if the email exists to give a specific message
+          try {
+            const res = await fetch('/api/auth/check-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email }),
+            })
+            const { exists } = await res.json()
+            if (!exists) {
+              setError('No account found with this email. Please sign up first.')
+            } else {
+              setError('Incorrect password. Please try again.')
+            }
+          } catch {
+            setError('Incorrect email or password. Please try again.')
+          }
         } else {
           setError(authError.message)
         }
