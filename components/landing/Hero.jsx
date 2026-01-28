@@ -106,12 +106,12 @@ export default function Hero() {
               className="px-8 py-3.5 rounded-xl text-base font-semibold text-white flex items-center gap-2 transition-all duration-300 hover:scale-105 garnet-glow font-body"
               style={{ backgroundColor: 'hsl(355, 48%, 39%)' }}
             >
-              {isAuthenticated ? 'Go to Dashboard' : 'Try It Free'}
+              {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/#features"
-              className="px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-300 glass-button-dark font-body text-gray-700 hover:text-gray-900"
+              className="px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-300 font-body border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900 hover:bg-white/50"
             >
               See Features
             </Link>

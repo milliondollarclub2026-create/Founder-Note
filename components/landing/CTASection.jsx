@@ -75,7 +75,7 @@ export default function CTASection() {
               className="px-10 py-4 rounded-xl text-lg font-medium flex items-center gap-3 transition-all duration-300 garnet-glow hover:scale-105 font-body"
               style={{ backgroundColor: 'hsl(355, 48%, 39%)', color: 'white' }}
             >
-              Try It Free
+              Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>
           )}
