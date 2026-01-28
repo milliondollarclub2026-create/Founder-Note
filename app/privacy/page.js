@@ -5,7 +5,7 @@ import Navigation from '@/components/landing/Navigation'
 import Footer from '@/components/landing/Footer'
 
 export default function PrivacyPage() {
-  const lastUpdated = 'January 21, 2026'
+  const lastUpdated = 'January 29, 2026'
 
   const sections = [
     {
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
         },
         {
           subtitle: 'Access Controls',
-          text: 'Access to user data is strictly limited to authorized personnel who need it to provide support or maintain our services. We maintain detailed access logs and conduct regular security audits.'
+          text: 'Access to user data is strictly limited to authorized personnel who need it to provide support or maintain our services. We follow the principle of least privilege for all internal access. We maintain detailed access logs and conduct regular security audits.'
         }
       ]
     },
@@ -77,7 +77,41 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '5. Your Rights and Choices',
+      title: '5. Google Account Integration',
+      content: [
+        {
+          subtitle: 'What Google Data We Access',
+          text: 'When you connect your Google account, Founder Notes may access the following data with your explicit consent: (a) Google Calendar: event metadata including event titles, descriptions, start and end times, attendees, and location details. This is used to display and extract relevant event information within the app. (b) Gmail (Send Only): when you use the email compose feature, Founder Notes sends emails on your behalf using the Gmail API. This includes the message subject, recipients, and body content that you compose within Founder Notes. We do not read, scan, or access your inbox or any existing emails.'
+        },
+        {
+          subtitle: 'How We Use Google Data',
+          text: 'Google Calendar data is accessed in real time to let you view and extract event details directly within Founder Notes, helping you stay organized alongside your voice notes and tasks. Gmail send access is used solely to send emails that you compose within the app. Each scope is used only for its stated feature and no other purpose.'
+        },
+        {
+          subtitle: 'Storage and Retention of Google Data',
+          text: 'Founder Notes does not store any Google Calendar data or Gmail content on its servers. Calendar event details are fetched in real time when you access the feature and are not cached or persisted. Emails are sent directly through the Gmail API and are not stored by Founder Notes. No Google user data is retained after your session ends.'
+        },
+        {
+          subtitle: 'Sharing and Transfers of Google Data',
+          text: 'We do not share, sell, or transfer any Google user data to third parties. Google data accessed through our integration is used exclusively within Founder Notes to provide the features described above and is not disclosed to any other entity.'
+        },
+        {
+          subtitle: 'Disconnecting Google',
+          text: 'You can disconnect your Google account from Founder Notes at any time through your account settings. Since we do not store any Google data, disconnecting immediately removes all access. You can also revoke access through your Google Account permissions at https://myaccount.google.com/permissions.'
+        }
+      ]
+    },
+    {
+      title: '6. Google API Limited Use Disclosure',
+      content: [
+        {
+          subtitle: '',
+          text: 'Founder Notes\' use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements. Specifically: (a) We only use Google data to provide and improve the user-facing features described in this policy. (b) We do not transfer Google data to third parties except as necessary to provide the service, as required by law, or with your explicit consent. (c) We do not use Google data for advertising or marketing purposes. (d) We do not allow humans to read Google data unless we have your affirmative consent, it is necessary for security purposes, to comply with applicable law, or the data is aggregated and anonymized for internal operations.'
+        }
+      ]
+    },
+    {
+      title: '7. Your Rights and Choices',
       content: [
         {
           subtitle: 'Access and Portability',
@@ -85,7 +119,7 @@ export default function PrivacyPage() {
         },
         {
           subtitle: 'Deletion',
-          text: 'You can delete individual notes or your entire account at any time. When you delete your account, all your personal data, including notes, transcriptions, and recordings, will be permanently deleted within 30 days.'
+          text: 'You can delete individual notes or your entire account at any time. When you delete your account, all your personal data, including notes, transcriptions, and recordings, will be permanently deleted within 30 days. Since we do not store Google data, no Google data deletion is necessary.'
         },
         {
           subtitle: 'Correction',
@@ -94,11 +128,11 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '6. Data Retention',
+      title: '8. Data Retention',
       content: [
         {
           subtitle: 'Active Accounts',
-          text: 'We retain your data for as long as your account is active. This includes all notes, transcriptions, and associated metadata.'
+          text: 'We retain your data for as long as your account is active. This includes all notes, transcriptions, and associated metadata. Google Calendar and Gmail data is not retained — it is accessed in real time and not stored.'
         },
         {
           subtitle: 'Deleted Content',
@@ -106,12 +140,12 @@ export default function PrivacyPage() {
         },
         {
           subtitle: 'Inactive Accounts',
-          text: 'For free tier accounts that have been inactive for more than 12 months, we may delete the account and associated data after providing 30 days notice via email.'
+          text: 'For accounts that have been inactive for more than 12 months, we may delete the account and associated data after providing 30 days notice via email.'
         }
       ]
     },
     {
-      title: '7. Cookies and Tracking',
+      title: '9. Cookies and Tracking',
       content: [
         {
           subtitle: 'Essential Cookies',
@@ -124,7 +158,7 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '8. Children\'s Privacy',
+      title: '10. Children\'s Privacy',
       content: [
         {
           subtitle: '',
@@ -133,7 +167,7 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '9. International Data Transfers',
+      title: '11. International Data Transfers',
       content: [
         {
           subtitle: '',
@@ -142,7 +176,7 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '10. Changes to This Policy',
+      title: '12. Changes to This Policy',
       content: [
         {
           subtitle: '',
@@ -151,7 +185,7 @@ export default function PrivacyPage() {
       ]
     },
     {
-      title: '11. Contact Us',
+      title: '13. Contact Us',
       content: [
         {
           subtitle: '',

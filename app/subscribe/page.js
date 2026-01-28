@@ -259,6 +259,9 @@ export default function SubscribePage() {
               <p className="text-sm text-muted-foreground mt-2">
                 Locked in. Price increases at launch.
               </p>
+              <p className="text-sm text-foreground/70 mt-1 font-medium">
+                Includes a 1-day free trial — no charge until it ends.
+              </p>
             </div>
 
             {/* Features */}

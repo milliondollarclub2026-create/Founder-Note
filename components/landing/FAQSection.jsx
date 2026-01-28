@@ -19,8 +19,12 @@ export default function FAQSection() {
       answer: 'Founder Notes is built for founders, executives, and professionals who think faster than they type. If you\'re constantly capturing ideas, managing tasks, and need to stay organized, Founder Notes helps you do it all through voice—without slowing down.'
     },
     {
-      question: 'Is there a free plan?',
-      answer: 'Yes! We are currently in our beta testing phase and provide our beta users with 10 free notes and 100 minutes of audio transcription per month. This is a great opportunity to experience Founder Notes and help shape the future of voice-first productivity.'
+      question: 'Is Founder Notes only for founders?',
+      answer: 'Not at all. While the name was inspired by the founder mindset of building and organizing ideas, Founder Notes is for anyone looking to boost their productivity. Students use it to capture lecture notes and study ideas, professionals use it to stay on top of meetings and tasks, and creatives use it to brainstorm freely. Whether you\'re in a corporate setting, running a side project, or just trying to organize your thoughts—Founder Notes is built for you.'
+    },
+    {
+      question: 'Is there a free trial?',
+      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Notes with full access to all features. After the trial ends, the beta plan is $14.99/month — and that price is locked in for early adopters even after launch. You can cancel anytime.'
     },
     {
       question: 'What languages are supported?',

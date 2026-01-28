@@ -5,7 +5,7 @@ import Navigation from '@/components/landing/Navigation'
 import Footer from '@/components/landing/Footer'
 
 export default function TermsPage() {
-  const lastUpdated = 'January 21, 2026'
+  const lastUpdated = 'January 29, 2026'
 
   const sections = [
     {
@@ -46,8 +46,12 @@ export default function TermsPage() {
           text: 'You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.'
         },
         {
+          subtitle: 'Google Account Connection',
+          text: 'If you choose to connect your Google account, you authorize Founder Notes to access your Google Calendar event details and to send emails on your behalf through Gmail, as described in our Privacy Policy. You are responsible for the content of any emails you compose and send through Founder Notes. You may disconnect your Google account at any time through your account settings or through your Google Account permissions page. Disconnecting immediately revokes all Google access.'
+        },
+        {
           subtitle: 'Account Termination',
-          text: 'You may delete your account at any time through the application settings. We reserve the right to suspend or terminate accounts that violate these Terms of Service or engage in prohibited activities.'
+          text: 'You may delete your account at any time through the application settings. Upon deletion, all your personal data will be permanently removed within 30 days. Since Founder Notes does not store Google data, no Google data deletion is necessary upon account termination. We reserve the right to suspend or terminate accounts that violate these Terms of Service or engage in prohibited activities.'
         }
       ]
     },
@@ -72,12 +76,12 @@ export default function TermsPage() {
       title: '5. Subscription and Payments',
       content: [
         {
-          subtitle: 'Free Tier',
-          text: 'Founder Notes offers a free tier with limited features and usage. Free tier limitations are subject to change with reasonable notice.'
+          subtitle: 'Free Trial',
+          text: 'Founder Notes offers a 1-day free trial for new users, providing full access to all features. After the trial period ends, you will be automatically charged the applicable subscription fee unless you cancel before the trial expires.'
         },
         {
           subtitle: 'Paid Subscriptions',
-          text: 'Paid subscription plans provide access to additional features and higher usage limits. Subscription fees are billed in advance on a monthly or annual basis, depending on the plan selected. All fees are non-refundable except as required by applicable law.'
+          text: 'Paid subscription plans provide access to all features and usage limits. Subscription fees are billed on a monthly basis. All fees are non-refundable except as required by applicable law.'
         },
         {
           subtitle: 'Price Changes',
@@ -245,8 +249,10 @@ export default function TermsPage() {
           >
             <p className="text-[#444] font-body leading-relaxed text-lg">
               Welcome to Founder Notes. These Terms of Service (&quot;Terms&quot;) govern your access to and use of
-              Founder Notes&apos;s website, applications, and services (collectively, the &quot;Service&quot;). By accessing
-              or using Founder Notes, you agree to be bound by these Terms. Please read them carefully.
+              Founder Notes&apos;s website, applications, and services (collectively, the &quot;Service&quot;), operated by
+              Founder Notes (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). You can reach us at foundervox.workplace@gmail.com.
+              By accessing or using Founder Notes, you agree to be bound by these Terms and our Privacy Policy.
+              Please read them carefully.
             </p>
           </motion.div>
 

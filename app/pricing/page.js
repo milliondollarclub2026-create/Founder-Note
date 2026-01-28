@@ -94,6 +94,9 @@ export default function PricingPage() {
                   <p className="text-white/50 text-sm font-body mt-2">
                     Locked in. Price increases at launch.
                   </p>
+                  <p className="text-white/70 text-sm font-body mt-1 font-medium">
+                    Includes a 1-day free trial — no charge until it ends.
+                  </p>
                 </div>
 
                 <Link
