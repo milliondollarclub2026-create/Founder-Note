@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
-  const type = searchParams.get('type') || 'email'
+  const type = searchParams.get('type') || 'signup'
 
   if (!token_hash) {
     return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent('Invalid verification link')}`)
