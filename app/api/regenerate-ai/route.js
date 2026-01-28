@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
 import OpenAI from 'openai';
+import { trackTokens } from '@/lib/track-tokens';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -38,6 +39,11 @@ Return ONLY valid JSON, no markdown or explanation.`
       temperature: 0.3,
       response_format: { type: 'json_object' }
     });
+
+    // Track token usage
+    if (completion.usage?.total_tokens) {
+      await trackTokens(supabase, user.id, completion.usage.total_tokens);
+    }
 
     let extracted;
     try {

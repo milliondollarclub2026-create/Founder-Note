@@ -56,6 +56,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'transcription required' }, { status: 400 });
     }
 
+    // Beta limit: 10 notes max
+    const { count: noteCount, error: countError } = await supabase
+      .from('notes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (!countError && noteCount >= 10) {
+      return NextResponse.json(
+        { error: 'Note limit reached. Your beta plan allows 10 notes.', code: 'NOTE_LIMIT' },
+        { status: 403 }
+      );
+    }
+
     const noteId = uuidv4();
 
     const { data: note, error: noteError } = await supabase

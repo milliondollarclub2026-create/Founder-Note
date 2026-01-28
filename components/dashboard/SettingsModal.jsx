@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 
-export const SettingsModal = ({ open, onClose, user, profile, onClearData, onDeleteAccount }) => {
+export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData, onDeleteAccount }) => {
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
@@ -86,6 +86,67 @@ export const SettingsModal = ({ open, onClose, user, profile, onClearData, onDel
                 </div>
               )}
             </div>
+
+            <Separator />
+
+            {/* Usage */}
+            {usage && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-primary/60" />
+                  <span className="text-sm font-medium">Usage</span>
+                </div>
+                <div className="space-y-4 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                  {/* Notes usage */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-muted-foreground">Notes</span>
+                      <span className="text-xs font-medium">{usage.notes.used} / {usage.notes.limit}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(usage.notes.percent, 100)}%`,
+                          backgroundColor: usage.notes.percent >= 90 ? 'hsl(0 84% 60%)' : usage.notes.percent >= 80 ? 'hsl(38 92% 50%)' : 'hsl(355 48% 39%)',
+                        }}
+                      />
+                    </div>
+                    {usage.warnings.notesMax && (
+                      <p className="text-[10px] text-destructive mt-1">Note limit reached</p>
+                    )}
+                  </div>
+                  {/* Transcription usage */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-muted-foreground">Transcription</span>
+                      <span className="text-xs font-medium">{usage.transcription.usedMinutes} / {usage.transcription.limitMinutes} min</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(usage.transcription.percent, 100)}%`,
+                          backgroundColor: usage.transcription.percent >= 90 ? 'hsl(0 84% 60%)' : usage.transcription.percent >= 80 ? 'hsl(38 92% 50%)' : 'hsl(355 48% 39%)',
+                        }}
+                      />
+                    </div>
+                    {usage.warnings.transMax && (
+                      <p className="text-[10px] text-destructive mt-1">Transcription limit reached</p>
+                    )}
+                  </div>
+                  {/* AI Token usage */}
+                  {usage.aiTokens && (
+                    <div className="pt-3 border-t border-border/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">AI Tokens</span>
+                        <span className="text-xs font-medium">{usage.aiTokens.used.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <Separator />
 

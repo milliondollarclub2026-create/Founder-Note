@@ -110,6 +110,7 @@ export default function Dashboard() {
   const [renameValue, setRenameValue] = useState('')
   const [activeView, setActiveView] = useState(null) // null | 'completed'
   const [completedIntents, setCompletedIntents] = useState([])
+  const [usage, setUsage] = useState(null)
 
   // Brain dump client-side cache: Map<scopeKey, { synthesis, cachedAt }>
   const brainDumpCacheRef = useRef({})
@@ -192,8 +193,28 @@ export default function Dashboard() {
     if (!isAuthLoading && authUser) {
       fetchNotes()
       fetchTodos()
+      fetchUsage()
     }
   }, [isAuthLoading, authUser])
+
+  // Show usage warning toasts
+  useEffect(() => {
+    if (!usage) return
+    if (usage.warnings.notesMax) {
+      toast.warning('You\'ve reached the 10 note limit on your beta plan.')
+    } else if (usage.warnings.notes90) {
+      toast.warning('You\'ve used 9 of 10 notes on your beta plan.')
+    } else if (usage.warnings.notes80) {
+      toast('You\'ve used 8 of 10 notes on your beta plan.', { icon: '📝' })
+    }
+    if (usage.warnings.transMax) {
+      toast.warning('You\'ve reached the 100 minute transcription limit on your beta plan.')
+    } else if (usage.warnings.trans90) {
+      toast.warning('You\'re at 90% of your 100 minute transcription limit.')
+    } else if (usage.warnings.trans80) {
+      toast('You\'re at 80% of your 100 minute transcription limit.', { icon: '🎙️' })
+    }
+  }, [usage?.notes?.used, usage?.transcription?.usedSeconds])
 
   // State for next steps section (merged todos + intents)
   const [nextStepsExpanded, setNextStepsExpanded] = useState(true)
@@ -537,6 +558,16 @@ export default function Dashboard() {
     } catch (error) { console.error('Error:', error) }
   }
 
+  const fetchUsage = async () => {
+    try {
+      const response = await fetch('/api/usage')
+      if (response.ok) {
+        const data = await response.json()
+        setUsage(data)
+      }
+    } catch (error) { console.error('Error fetching usage:', error) }
+  }
+
   const getOptimalMimeType = () => {
     const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/wav']
     for (const type of types) { if (MediaRecorder.isTypeSupported(type)) return type }
@@ -544,6 +575,15 @@ export default function Dashboard() {
   }
 
   const startRecording = async () => {
+    // Check note limit before recording
+    if (usage?.warnings?.notesMax) {
+      toast.error('Note limit reached. Your beta plan allows 10 notes.')
+      return
+    }
+    if (usage?.warnings?.transMax) {
+      toast.error('Transcription limit reached. Your beta plan allows 100 minutes.')
+      return
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
@@ -578,7 +618,15 @@ export default function Dashboard() {
       const formData = new FormData()
       formData.append('audio', audioBlob, 'recording.webm')
       const transcribeRes = await fetch('/api/transcribe', { method: 'POST', body: formData })
-      if (!transcribeRes.ok) throw new Error('Transcription failed')
+      if (!transcribeRes.ok) {
+        const errData = await transcribeRes.json().catch(() => ({}))
+        if (errData.code === 'TRANSCRIPTION_LIMIT') {
+          toast.error(errData.error || 'Transcription limit reached')
+          fetchUsage()
+          return
+        }
+        throw new Error('Transcription failed')
+      }
       const transcribeData = await transcribeRes.json()
       if (!transcribeData.transcription) throw new Error('No speech detected')
 
@@ -622,10 +670,18 @@ export default function Dashboard() {
           tags: []
         })
       })
-      if (!saveRes.ok) throw new Error('Save failed')
+      if (!saveRes.ok) {
+        const errData = await saveRes.json().catch(() => ({}))
+        if (errData.code === 'NOTE_LIMIT') {
+          toast.error(errData.error || 'Note limit reached')
+          fetchUsage()
+          return
+        }
+        throw new Error('Save failed')
+      }
       const savedNote = await saveRes.json()
       // Silent success - auto-navigates to the note
-      await Promise.all([fetchNotes(), fetchTodos(), fetchIntents()])
+      await Promise.all([fetchNotes(), fetchTodos(), fetchIntents(), fetchUsage()])
       setBrainDumpStale(true)
 
       // Auto-navigate to the newly created note
@@ -646,6 +702,7 @@ export default function Dashboard() {
       setSelectedNote(null)
       fetchNotes()
       fetchTodos()
+      fetchUsage()
       setBrainDumpStale(true)
     } catch (error) { toast.error('Failed to delete') }
   }
@@ -1363,6 +1420,40 @@ export default function Dashboard() {
                 <span className="inline-flex items-center mt-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/70 font-medium">
                   Beta Plan
                 </span>
+                {usage && (
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-muted-foreground">Notes</span>
+                        <span className="text-[10px] font-medium text-foreground">{usage.notes.used}/{usage.notes.limit}</span>
+                      </div>
+                      <div className="h-1 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(usage.notes.percent, 100)}%`,
+                            backgroundColor: usage.notes.percent >= 90 ? 'hsl(0 84% 60%)' : usage.notes.percent >= 80 ? 'hsl(38 92% 50%)' : 'hsl(355 48% 39%)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-muted-foreground">Transcription</span>
+                        <span className="text-[10px] font-medium text-foreground">{usage.transcription.usedMinutes}/{usage.transcription.limitMinutes} min</span>
+                      </div>
+                      <div className="h-1 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(usage.transcription.percent, 100)}%`,
+                            backgroundColor: usage.transcription.percent >= 90 ? 'hsl(0 84% 60%)' : usage.transcription.percent >= 80 ? 'hsl(38 92% 50%)' : 'hsl(355 48% 39%)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="gap-2 cursor-pointer">
@@ -1427,8 +1518,8 @@ export default function Dashboard() {
                 <SearchResults results={searchResults} query={searchQuery} onSelect={setSelectedNote} onClose={() => { setSearchQuery(''); setShowSearchResults(false) }} />
               )}
             </div>
-            <Button onClick={startRecording} disabled={isRecording || isProcessing} size="sm" className="gap-1.5 h-10 shadow-sm px-4 flex-shrink-0">
-              <Plus className="w-4 h-4" /> Quick Note
+            <Button onClick={startRecording} disabled={isRecording || isProcessing || usage?.warnings?.notesMax} size="sm" className="gap-1.5 h-10 shadow-sm px-4 flex-shrink-0" title={usage?.warnings?.notesMax ? 'Note limit reached' : undefined}>
+              <Plus className="w-4 h-4" /> {usage?.warnings?.notesMax ? 'Limit reached' : 'Quick Note'}
             </Button>
           </div>
 
@@ -1603,8 +1694,8 @@ export default function Dashboard() {
                     {selectedFolder ? `No notes in ${selectedFolder}` : selectedTag ? `No notes tagged #${selectedTag}` : 'Your notes will live here'}
                   </p>
                   <p className="text-sm text-muted-foreground mb-5">Tap the mic or press Quick Note to capture your first thought</p>
-                  <Button onClick={startRecording} disabled={isRecording || isProcessing} size="sm" className="gap-1.5 shadow-sm">
-                    <Mic className="w-3.5 h-3.5" /> Record your first note
+                  <Button onClick={startRecording} disabled={isRecording || isProcessing || usage?.warnings?.notesMax} size="sm" className="gap-1.5 shadow-sm">
+                    <Mic className="w-3.5 h-3.5" /> {usage?.warnings?.notesMax ? 'Note limit reached' : 'Record your first note'}
                   </Button>
                 </div>
               ) : viewMode === 'grid' ? (
@@ -1721,6 +1812,7 @@ export default function Dashboard() {
         onClose={() => setIsSettingsOpen(false)}
         user={authUser}
         profile={userProfile}
+        usage={usage}
         onClearData={handleClearAllData}
         onDeleteAccount={handleDeleteAccount}
       />

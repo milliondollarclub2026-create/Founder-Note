@@ -62,6 +62,8 @@ export async function DELETE(request) {
       .update({
         usage_preferences: [],
         ai_style_preferences: [],
+        transcription_seconds_used: 0,
+        ai_tokens_used: 0,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', userId);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
 import OpenAI from 'openai';
+import { trackTokens } from '@/lib/track-tokens';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -66,7 +67,7 @@ const extractIntentContent = (message) => {
 };
 
 // AI-normalize and split compound intents into clean individual items
-const normalizeIntents = async (rawText) => {
+const normalizeIntents = async (rawText, supabase, userId) => {
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -93,6 +94,11 @@ Output: { "items": [{ "text": "Investor meeting on Friday at 3 PM", "type": "rem
       max_tokens: 300,
       response_format: { type: 'json_object' }
     });
+
+    // Track token usage for intent normalization
+    if (response.usage?.total_tokens && supabase && userId) {
+      await trackTokens(supabase, userId, response.usage.total_tokens);
+    }
 
     const parsed = JSON.parse(response.choices[0].message.content);
     return parsed.items || [];
@@ -132,7 +138,7 @@ export async function POST(request) {
 
       if (intentContent.length > 5) {
         // AI-normalize and split compound intents into clean items
-        const normalizedItems = await normalizeIntents(intentContent);
+        const normalizedItems = await normalizeIntents(intentContent, supabase, user.id);
         const capturedIntents = [];
 
         for (const item of normalizedItems) {
@@ -428,6 +434,11 @@ You are scoped to: ${scopeDescription}`;
     });
 
     const aiResponse = completion.choices[0].message.content;
+
+    // Track token usage for main chat completion
+    if (completion.usage?.total_tokens) {
+      await trackTokens(supabase, user.id, completion.usage.total_tokens);
+    }
 
     // Only return sources that Remy actually cited in its response
     // For intent flow (just acknowledging a "remember"), no sources needed

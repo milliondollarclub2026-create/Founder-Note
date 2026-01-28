@@ -18,9 +18,6 @@ const dmSans = DM_Sans({
 export const metadata = {
   title: 'Founder Note - AI Voice Notes for Founders',
   description: 'Capture ideas with voice, get AI-powered transcription and insights automatically.',
-  icons: {
-    icon: '/favicon.ico',
-  },
 }
 
 export default function RootLayout({ children }) {

@@ -1,10 +1,27 @@
 import { NextResponse } from 'next/server';
 
+const TRANSCRIPTION_LIMIT_SECONDS = 6000; // 100 minutes
+
 export async function POST(request) {
   try {
     const { getAuthenticatedUser } = await import('@/lib/supabase-server');
-    const { user } = await getAuthenticatedUser();
+    const { user, supabase } = await getAuthenticatedUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Check transcription limit before processing
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('transcription_seconds_used')
+      .eq('user_id', user.id)
+      .single();
+
+    const secondsUsed = profile?.transcription_seconds_used || 0;
+    if (secondsUsed >= TRANSCRIPTION_LIMIT_SECONDS) {
+      return NextResponse.json(
+        { error: 'Transcription limit reached. Your beta plan allows 100 minutes.', code: 'TRANSCRIPTION_LIMIT' },
+        { status: 403 }
+      );
+    }
 
     const formData = await request.formData();
     const audioFile = formData.get('audio');
@@ -34,12 +51,22 @@ export async function POST(request) {
 
     const result = await deepgramResponse.json();
     const transcript = result?.results?.channels?.[0]?.alternatives?.[0]?.transcript || '';
+    const duration = result?.metadata?.duration || 0;
+
+    // Increment transcription seconds used
+    if (duration > 0) {
+      const newTotal = secondsUsed + Math.ceil(duration);
+      await supabase
+        .from('user_profiles')
+        .update({ transcription_seconds_used: newTotal })
+        .eq('user_id', user.id);
+    }
 
     return NextResponse.json({
       success: true,
       transcription: transcript,
       confidence: result?.results?.channels?.[0]?.alternatives?.[0]?.confidence,
-      duration: result?.metadata?.duration,
+      duration,
     });
   } catch (error) {
     console.error('API Error:', error);

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { trackTokens } from '@/lib/track-tokens';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -50,7 +51,7 @@ Strike the right balance between clarity and completeness - not too wordy, but d
 export async function POST(request) {
   try {
     const { getAuthenticatedUser } = await import('@/lib/supabase-server');
-    const { user } = await getAuthenticatedUser();
+    const { user, supabase } = await getAuthenticatedUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { transcription } = await request.json();
@@ -73,6 +74,11 @@ export async function POST(request) {
       ],
       temperature: 0.3,
     });
+
+    // Track token usage
+    if (completion.usage?.total_tokens) {
+      await trackTokens(supabase, user.id, completion.usage.total_tokens);
+    }
 
     return NextResponse.json({
       success: true,

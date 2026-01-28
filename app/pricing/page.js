@@ -64,12 +64,12 @@ export default function PricingPage() {
           </motion.div>
 
           {/* Single Beta Pricing Card */}
-          <div className="max-w-lg mx-auto mb-20 pt-4">
+          <div className="max-w-lg mx-auto mb-20 pt-6">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="relative rounded-3xl text-white shadow-2xl"
+              className="relative rounded-3xl text-white shadow-2xl overflow-visible"
               style={{
                 background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
               }}
