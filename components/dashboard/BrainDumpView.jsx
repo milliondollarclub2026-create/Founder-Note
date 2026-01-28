@@ -342,12 +342,11 @@ export const BrainDumpView = ({
     )
   }
 
-  // No synthesis yet (shouldn't normally reach here)
+  // No synthesis yet — show the synthesis animation
   if (!synthesis) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 animate-fade-in">
-        <div className="w-12 h-px bg-border/40 mb-4" />
-        <p className="text-sm text-muted-foreground/50">Loading...</p>
+      <div className="animate-fade-in max-w-2xl mx-auto">
+        <SynthesisLoader />
       </div>
     )
   }
