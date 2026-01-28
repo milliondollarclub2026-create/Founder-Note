@@ -164,18 +164,18 @@ const PasswordStrength = ({ password }) => {
   return (
     <div className="mt-2 space-y-1.5">
       <div className="flex items-center gap-2 text-xs">
-        <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${validation.minLength ? 'bg-emerald-100 text-emerald-600' : 'bg-muted text-muted-foreground/50'}`}>
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${validation.minLength ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/50'}`}>
           {validation.minLength ? <Check className="w-2.5 h-2.5" /> : <X className="w-2.5 h-2.5" />}
         </div>
-        <span className={validation.minLength ? 'text-emerald-600' : 'text-muted-foreground/60'}>
+        <span className={validation.minLength ? 'text-primary' : 'text-muted-foreground/60'}>
           At least 8 characters
         </span>
       </div>
       <div className="flex items-center gap-2 text-xs">
-        <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${validation.hasNumber ? 'bg-emerald-100 text-emerald-600' : 'bg-muted text-muted-foreground/50'}`}>
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${validation.hasNumber ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/50'}`}>
           {validation.hasNumber ? <Check className="w-2.5 h-2.5" /> : <X className="w-2.5 h-2.5" />}
         </div>
-        <span className={validation.hasNumber ? 'text-emerald-600' : 'text-muted-foreground/60'}>
+        <span className={validation.hasNumber ? 'text-primary' : 'text-muted-foreground/60'}>
           At least 1 number
         </span>
       </div>
@@ -316,7 +316,7 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
       } else if (!profile?.onboarding_completed) {
         router.push('/onboarding')
       } else {
-        router.push('/')
+        router.push('/dashboard')
       }
     } catch (err) {
       console.error('Login error:', err)
@@ -800,23 +800,21 @@ function AuthPageContent() {
   }
   
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background relative">
+      {/* Top-left logo — fixed across the full screen */}
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
+        <img src="/logo.png" alt="Founder Note" className="w-10 h-10 rounded-xl shadow-sm" />
+        <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
+      </div>
+
       {/* Brand Panel */}
       <BrandPanel />
-      
+
       {/* Auth Form Panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8"
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 pt-20"
         style={{ background: 'linear-gradient(180deg, hsl(34 42% 92%) 0%, hsl(34 35% 89%) 100%)' }}
       >
         <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
-          </div>
-
           {/* Error display */}
           {error && view === 'main' && (
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">

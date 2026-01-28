@@ -2,30 +2,48 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  FileText, Folder, Tag, Home, ChevronUp, X, Send,
+  FileText, Folder, Tag, Home, ChevronUp, X, ArrowUp,
   Loader2, Sparkles, MessageCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 
+// Simple markdown renderer for chat messages — handles **bold** and numbered lists
+const renderChatText = (text) => {
+  if (!text) return null
+  // Split by **bold** markers and render
+  const parts = text.split(/(\*\*.*?\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
 // Context-Aware Chat Bar Component - handles all scopes
-export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCount }) => {
+export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCount, onSelectNote, onIntentCaptured }) => {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [scopeInfo, setScopeInfo] = useState(null)
   const endRef = useRef(null)
   const prevScopeRef = useRef(null)
+  const messageCacheRef = useRef({}) // Cache messages per scope key
 
-  // Clear messages when context scope changes
+  // Save/restore messages when context scope changes
   useEffect(() => {
     const currentScopeKey = JSON.stringify(contextScope)
     const prevScopeKey = prevScopeRef.current
 
     if (prevScopeKey && prevScopeKey !== currentScopeKey) {
-      // Context changed - reset chat
-      setMessages([])
+      // Save current messages to cache before switching
+      messageCacheRef.current[prevScopeKey] = messages
+
+      // Restore cached messages for new scope, or start fresh
+      const cached = messageCacheRef.current[currentScopeKey]
+      setMessages(cached || [])
       setScopeInfo(null)
     }
     prevScopeRef.current = currentScopeKey
@@ -35,52 +53,64 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Get scope-specific display info - using cohesive warm palette
+  // Scope colors — tonal variations within the cashmere/burgundy family
+  const scopeStyles = {
+    note: {
+      color: 'hsl(350 30% 50%)',     // soft rose — lighter burgundy
+      bg: 'hsl(350 30% 50% / 0.06)',
+      border: 'hsl(350 30% 50% / 0.15)',
+    },
+    folder: {
+      color: 'hsl(15 32% 44%)',      // warm sienna — earthy brown-red
+      bg: 'hsl(15 32% 44% / 0.06)',
+      border: 'hsl(15 32% 44% / 0.15)',
+    },
+    tag: {
+      color: 'hsl(340 24% 48%)',     // dusty berry — muted rose
+      bg: 'hsl(340 24% 48% / 0.06)',
+      border: 'hsl(340 24% 48% / 0.15)',
+    },
+    global: {
+      color: 'hsl(355 48% 39%)',     // garnet (primary)
+      bg: 'hsl(355 48% 39% / 0.05)',
+      border: 'hsl(355 48% 39% / 0.15)',
+    },
+  }
+
   const getScopeDisplay = () => {
+    const st = scopeStyles[contextScope.type] || scopeStyles.global
     switch (contextScope.type) {
       case 'note':
         return {
+          ...st,
           icon: <FileText className="w-4 h-4" />,
           title: `Focused on: ${contextScope.noteTitle || 'This Note'}`,
           placeholder: 'Ask about this note...',
           hint: "I can only see this note's content",
-          color: 'text-emerald-700',
-          bgColor: 'bg-emerald-50/80',
-          borderColor: 'border-emerald-200/60',
-          glowColor: 'shadow-emerald-100/50'
         }
       case 'folder':
         return {
+          ...st,
           icon: <Folder className="w-4 h-4" />,
           title: `Folder: ${contextScope.folder}`,
           placeholder: `Ask about notes in ${contextScope.folder}...`,
           hint: `Scoped to ${noteCount || 0} note${noteCount !== 1 ? 's' : ''} in this folder`,
-          color: 'text-amber-700',
-          bgColor: 'bg-amber-50/80',
-          borderColor: 'border-amber-200/60',
-          glowColor: 'shadow-amber-100/50'
         }
       case 'tag':
         return {
+          ...st,
           icon: <Tag className="w-4 h-4" />,
           title: `Tag: #${contextScope.tag}`,
           placeholder: `Ask about notes tagged ${contextScope.tag}...`,
           hint: `Scoped to ${noteCount || 0} note${noteCount !== 1 ? 's' : ''} with this tag`,
-          color: 'text-violet-700',
-          bgColor: 'bg-violet-50/80',
-          borderColor: 'border-violet-200/60',
-          glowColor: 'shadow-violet-100/50'
         }
       default:
         return {
+          ...st,
           icon: <Home className="w-4 h-4" />,
           title: 'All Notes',
           placeholder: 'Search across all your notes...',
           hint: `Access to all ${noteCount || 0} notes`,
-          color: 'text-primary',
-          bgColor: 'bg-primary/5',
-          borderColor: 'border-primary/15',
-          glowColor: 'shadow-primary/10'
         }
     }
   }
@@ -106,6 +136,10 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
       if (data.scope) {
         setScopeInfo(data.scope)
       }
+      if (data.intentCaptured) {
+        // Small delay to ensure DB write has committed before re-fetching
+        setTimeout(() => onIntentCaptured?.(), 300)
+      }
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.message,
@@ -127,17 +161,17 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
     return (
       <div
         onClick={onToggle}
-        className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-card border shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 ${scopeDisplay.borderColor} ${scopeDisplay.glowColor}`}
-        style={{ minWidth: 'min(560px, 90vw)' }}
+        className="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-card border shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200"
+        style={{ width: 'min(620px, 90vw)', borderColor: scopeDisplay.border }}
       >
         {/* Remy avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 flex-shrink-0">
-          <span className="text-sm font-semibold text-primary">R</span>
+        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: scopeDisplay.bg, border: `1px solid ${scopeDisplay.border}` }}>
+          <span className="text-sm font-semibold" style={{ color: scopeDisplay.color }}>R</span>
         </div>
         <div className="flex-1">
           <span className="text-sm text-muted-foreground">Ask Remy anything...</span>
         </div>
-        <div className={`text-[10px] px-2 py-0.5 rounded-full ${scopeDisplay.bgColor} ${scopeDisplay.color} font-medium`}>
+        <div className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: scopeDisplay.bg, color: scopeDisplay.color }}>
           {contextScope.type === 'note' ? 'Note' : contextScope.type === 'folder' ? contextScope.folder : contextScope.type === 'tag' ? `#${contextScope.tag}` : 'Global'}
         </div>
         <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -146,20 +180,20 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
   }
 
   return (
-    <div className={`bg-card border rounded-2xl shadow-xl animate-slide-up overflow-hidden w-full max-w-[600px] ${scopeDisplay.borderColor}`}>
+    <div className="bg-card border rounded-2xl shadow-xl animate-slide-up overflow-hidden w-full max-w-[680px]" style={{ width: 'min(620px, 90vw)', borderColor: scopeDisplay.border }}>
       {/* Header with Remy identity and scope indicator */}
-      <div className={`flex items-center justify-between px-4 py-3 border-b ${scopeDisplay.bgColor}`}>
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ background: scopeDisplay.bg }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10">
-            <span className="text-xs font-semibold text-primary">R</span>
+          <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: scopeDisplay.bg, border: `1px solid ${scopeDisplay.border}` }}>
+            <span className="text-xs font-semibold" style={{ color: scopeDisplay.color }}>R</span>
           </div>
           <div>
             <span className="text-sm font-medium">Remy</span>
-            <p className={`text-[10px] ${scopeDisplay.color} opacity-80`}>{scopeDisplay.hint}</p>
+            <p className="text-[10px] opacity-80" style={{ color: scopeDisplay.color }}>{scopeDisplay.hint}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`text-[10px] px-2 py-0.5 rounded-full ${scopeDisplay.bgColor} ${scopeDisplay.color} font-medium border ${scopeDisplay.borderColor}`}>
+          <div className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: scopeDisplay.bg, color: scopeDisplay.color, border: `1px solid ${scopeDisplay.border}` }}>
             {scopeDisplay.title}
           </div>
           <button onClick={onToggle} className="p-1.5 rounded-lg hover:bg-secondary transition-smooth">
@@ -168,21 +202,38 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
         </div>
       </div>
 
-      {/* Suggestion Pills - educate users about flows */}
+      {/* Suggestion Pills - context-aware prompts */}
       {messages.length === 0 && (
-        <div className="px-4 pt-3 flex flex-wrap gap-2">
-          <button
-            onClick={() => setInput("Hey Remy, remember this: ")}
-            className="text-[10px] px-2.5 py-1 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 transition-colors"
-          >
-            Try: &quot;Hey Remy, remember this&quot;
-          </button>
-          <button
-            onClick={() => setInput("Remy, don't forget ")}
-            className="text-[10px] px-2.5 py-1 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 transition-colors"
-          >
-            &quot;Remy, don&apos;t forget...&quot;
-          </button>
+        <div className="px-4 pt-3 flex flex-wrap gap-1.5">
+          {(contextScope.type === 'note' ? [
+            { label: 'Ask Remy to summarize', prompt: 'Summarize this note for me' },
+            { label: "Remy's key takeaways", prompt: 'What are the key takeaways from this note?' },
+            { label: 'Remy, find action items', prompt: 'List the action items from this note' },
+            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
+          ] : contextScope.type === 'folder' ? [
+            { label: 'Ask Remy about this folder', prompt: `Summarize the notes in ${contextScope.folder}` },
+            { label: 'Remy, find common themes', prompt: 'What are the common themes across these notes?' },
+            { label: 'Remy, open questions?', prompt: 'What open questions are there across these notes?' },
+            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
+          ] : contextScope.type === 'tag' ? [
+            { label: `Ask Remy about #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
+            { label: 'Remy, find patterns', prompt: 'What patterns do you see in these notes?' },
+            { label: 'Remy, list action items', prompt: 'List all action items from these notes' },
+            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
+          ] : [
+            { label: 'Remy, recent highlights', prompt: 'What are the highlights from my recent notes?' },
+            { label: 'Remy, open action items', prompt: 'What action items are still open?' },
+            { label: 'Remy, key themes', prompt: 'What are the key themes across my notes?' },
+            { label: "Hey Remy, don't forget...", prompt: "Remy, don't forget " },
+          ]).map((pill, i) => (
+            <button
+              key={i}
+              onClick={() => setInput(pill.prompt)}
+              className="text-[11px] px-3 py-1.5 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              {pill.label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -191,8 +242,8 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
         <div className="space-y-3">
           {messages.length === 0 && (
             <div className="text-center py-6">
-              <div className={`w-10 h-10 rounded-full ${scopeDisplay.bgColor} flex items-center justify-center mx-auto mb-3`}>
-                <Sparkles className={`w-5 h-5 ${scopeDisplay.color}`} />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: scopeDisplay.bg }}>
+                <Sparkles className="w-5 h-5" style={{ color: scopeDisplay.color }} />
               </div>
               <p className="text-sm text-muted-foreground">
                 {contextScope.type === 'note'
@@ -211,18 +262,27 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
           )}
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+              <div className={`max-w-[80%] rounded-2xl ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary/80 border border-border/50 rounded-bl-md'}`}>
                 {msg.role === 'assistant' && (
-                  <div className="px-3 pt-2 pb-0.5">
-                    <span className="text-[10px] font-medium text-primary/60">Remy</span>
+                  <div className="px-3.5 pt-2.5 pb-0.5">
+                    <span className="text-[10px] font-semibold text-primary/60">Remy</span>
                   </div>
                 )}
-                <div className={`px-3 ${msg.role === 'assistant' ? 'pb-2' : 'py-2'} rounded-xl text-sm`}>
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                <div className={`px-3.5 ${msg.role === 'assistant' ? 'pb-2.5' : 'py-2.5'} text-sm leading-relaxed`}>
+                  <span className="whitespace-pre-wrap">{msg.role === 'assistant' ? renderChatText(msg.content) : msg.content}</span>
                   {msg.sources?.length > 0 && (
-                    <div className="text-[10px] opacity-60 mt-1.5 pt-1.5 border-t border-current/10">
-                      <span className="font-medium">Sources:</span> {msg.sources.map(s => s.title).join(', ')}
-                    </div>
+                    <span className="inline-flex items-center gap-1 ml-1.5 align-baseline translate-y-[-1px]">
+                      {msg.sources.map((s, si) => (
+                        <button
+                          key={si}
+                          onClick={(e) => { e.stopPropagation(); onSelectNote?.(s) }}
+                          title={s.title}
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                        >
+                          {si + 1}
+                        </button>
+                      ))}
+                    </span>
                   )}
                 </div>
               </div>
@@ -230,8 +290,8 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
           ))}
           {isLoading && (
             <div className="flex">
-              <div className="bg-secondary px-3 py-2 rounded-xl flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="bg-secondary/80 border border-border/50 px-3.5 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary/60" />
                 <span className="text-xs text-muted-foreground">Remy is thinking...</span>
               </div>
             </div>
@@ -242,19 +302,34 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
 
       {/* Input */}
       <div className="px-4 py-3 border-t border-border">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
+        <div className="flex items-end gap-2">
+          <textarea
             placeholder={scopeDisplay.placeholder}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            className="flex-1 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/30"
+            onChange={(e) => {
+              setInput(e.target.value)
+              // Auto-resize: reset then fit content
+              e.target.style.height = 'auto'
+              e.target.style.height = Math.min(e.target.scrollHeight, 80) + 'px'
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                sendMessage()
+              }
+            }}
+            rows={1}
+            className="flex-1 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/30 resize-none overflow-hidden"
+            style={{ minHeight: '36px', maxHeight: '80px' }}
             autoFocus
           />
-          <Button size="sm" onClick={sendMessage} disabled={!input.trim() || isLoading} className="h-9 px-4">
-            <Send className="w-3.5 h-3.5" />
-          </Button>
+          <button
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 disabled:opacity-30 hover:bg-primary/90 transition-all duration-150"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -262,13 +337,15 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
 }
 
 // Legacy wrapper for backward compatibility
-export const GlobalChatBar = ({ isExpanded, onToggle, contextScope, noteCount }) => {
+export const GlobalChatBar = ({ isExpanded, onToggle, contextScope, noteCount, onSelectNote, onIntentCaptured }) => {
   return (
     <ContextAwareChatBar
       contextScope={contextScope || { type: 'global' }}
       isExpanded={isExpanded}
       onToggle={onToggle}
       noteCount={noteCount}
+      onSelectNote={onSelectNote}
+      onIntentCaptured={onIntentCaptured}
     />
   )
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { Loader2, Sparkles, Check, ArrowRight, Brain, Lightbulb, MessageSquare, Users, Briefcase, Heart, ListChecks, Quote, AlertTriangle, FileText, ChevronRight } from 'lucide-react'
+import { Loader2, Check, ArrowRight, Brain, Lightbulb, MessageSquare, Users, Briefcase, Heart, ListChecks, Quote, AlertTriangle, FileText, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 // Create Supabase client
@@ -14,90 +14,35 @@ const createClient = () => {
   )
 }
 
-// Usage Options for Question 1
+// Usage Options for Question 1 — concise, no descriptions
 const usageOptions = [
-  {
-    id: 'ideas',
-    label: 'Ideas & brain dumps',
-    icon: Brain,
-    description: 'Quick thoughts and creative captures'
-  },
-  {
-    id: 'meetings',
-    label: 'Meeting & call notes',
-    icon: MessageSquare,
-    description: 'Recording and summarizing conversations'
-  },
-  {
-    id: 'decisions',
-    label: 'Decisions & reasoning',
-    icon: ListChecks,
-    description: 'Documenting why you chose what you chose'
-  },
-  {
-    id: 'product',
-    label: 'Product & engineering planning',
-    icon: Briefcase,
-    description: 'Specs, roadmaps, and technical thinking'
-  },
-  {
-    id: 'investors',
-    label: 'Investor & stakeholder thoughts',
-    icon: Users,
-    description: 'Fundraising prep and board updates'
-  },
-  {
-    id: 'personal',
-    label: 'Personal life organization',
-    icon: Heart,
-    description: 'Non-work thoughts and reflections'
-  },
+  { id: 'ideas', label: 'Ideas & brain dumps', icon: Brain },
+  { id: 'meetings', label: 'Meeting notes', icon: MessageSquare },
+  { id: 'decisions', label: 'Decisions & reasoning', icon: ListChecks },
+  { id: 'product', label: 'Product planning', icon: Briefcase },
+  { id: 'investors', label: 'Investor updates', icon: Users },
+  { id: 'personal', label: 'Personal reflections', icon: Heart },
 ]
 
-// AI Output Style Options for Question 2
+// AI Output Style Options for Question 2 — concise, no descriptions
 const aiStyleOptions = [
-  {
-    id: 'bullets',
-    label: 'Concise bullet points only',
-    icon: ListChecks,
-    description: 'Quick, scannable takeaways'
-  },
-  {
-    id: 'structured',
-    label: 'Structured summaries',
-    icon: FileText,
-    description: 'Organized with headings and sections'
-  },
-  {
-    id: 'decisions',
-    label: 'Highlight decisions & takeaways',
-    icon: Lightbulb,
-    description: 'Focus on what was decided'
-  },
-  {
-    id: 'blockers',
-    label: 'Surface blockers & open questions',
-    icon: AlertTriangle,
-    description: 'Identify what needs resolution'
-  },
-  {
-    id: 'minimal',
-    label: 'Keep close to original wording',
-    icon: Quote,
-    description: 'Minimal AI transformation'
-  },
+  { id: 'bullets', label: 'Concise bullet points', icon: ListChecks },
+  { id: 'structured', label: 'Structured summaries', icon: FileText },
+  { id: 'decisions', label: 'Decisions & takeaways', icon: Lightbulb },
+  { id: 'blockers', label: 'Blockers & open questions', icon: AlertTriangle },
+  { id: 'minimal', label: 'Close to original wording', icon: Quote },
 ]
 
-// Selectable Chip Component
-const SelectableChip = ({ option, selected, onToggle, showDescription = true }) => {
+// Selectable Chip Component — compact, no description
+const SelectableChip = ({ option, selected, onToggle }) => {
   const Icon = option.icon
 
   return (
     <button
       onClick={onToggle}
-      className={`group relative w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+      className={`group relative w-full px-4 py-3.5 rounded-xl border-2 text-left transition-all duration-200 ${
         selected
-          ? 'border-primary shadow-sm'
+          ? 'border-primary shadow-sm scale-[1.01]'
           : 'hover:border-primary/25'
       }`}
       style={{
@@ -107,9 +52,9 @@ const SelectableChip = ({ option, selected, onToggle, showDescription = true }) 
         borderColor: selected ? undefined : 'hsl(34 25% 82% / 0.6)',
       }}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         <div
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-1.5 rounded-lg transition-colors ${
             selected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
           }`}
           style={{
@@ -118,18 +63,9 @@ const SelectableChip = ({ option, selected, onToggle, showDescription = true }) 
         >
           <Icon className="w-4 h-4" />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${selected ? 'text-foreground' : 'text-foreground/80'}`}>
-              {option.label}
-            </span>
-          </div>
-          {showDescription && (
-            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              {option.description}
-            </p>
-          )}
-        </div>
+        <span className={`text-sm font-medium flex-1 ${selected ? 'text-foreground' : 'text-foreground/80'}`}>
+          {option.label}
+        </span>
         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
           selected
             ? 'border-primary bg-primary'
@@ -169,6 +105,7 @@ export default function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [user, setUser] = useState(null)
   const [userName, setUserName] = useState('')
+  const [slideDir, setSlideDir] = useState(null) // null = initial, 'right' = forward, 'left' = back
 
   // Onboarding selections
   const [usageSelections, setUsageSelections] = useState([])
@@ -201,7 +138,7 @@ export default function OnboardingPage() {
       if (profile?.onboarding_completed) {
         // If onboarded, check subscription status
         if (profile?.subscription_status === 'active') {
-          router.push('/')
+          router.push('/dashboard')
         } else {
           router.push('/subscribe')
         }
@@ -241,50 +178,59 @@ export default function OnboardingPage() {
     try {
       const supabase = createClient()
 
-      // Update existing profile with onboarding preferences
-      // Profile was created during login/callback, now we just update it
+      // Upsert profile — handles both "row exists" and "row missing" cases
       const { error } = await supabase
         .from('user_profiles')
-        .update({
-          onboarding_completed: true,
-          usage_preferences: usageSelections,
-          ai_style_preferences: aiStyleSelections,
-        })
-        .eq('user_id', user.id)
-
-      if (error) {
-        console.error('Error saving preferences:', error)
-        // If update fails, try to insert (fallback for edge cases)
-        const { error: insertError } = await supabase.from('user_profiles').insert({
+        .upsert({
           user_id: user.id,
-          full_name: user.user_metadata?.full_name,
+          full_name: user.user_metadata?.full_name || '',
           email: user.email,
           onboarding_completed: true,
           usage_preferences: usageSelections,
           ai_style_preferences: aiStyleSelections,
-        })
+        }, { onConflict: 'user_id' })
 
-        if (insertError) {
-          console.error('Insert also failed:', insertError)
-        }
+      if (error) {
+        console.error('Failed to save onboarding:', error)
+        setIsSaving(false)
+        return
+      }
+
+      // Verify the write landed before navigating
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profile?.onboarding_completed) {
+        console.error('Onboarding flag not persisted after write')
+        setIsSaving(false)
+        return
       }
 
       // Navigate to paywall (subscription required before dashboard access)
       router.push('/subscribe')
     } catch (error) {
       console.error('Failed to save onboarding:', error)
-      // Still navigate to paywall even if save fails
-      router.push('/subscribe')
+      setIsSaving(false)
     }
   }
 
   // Handle next step
   const handleNext = () => {
+    setSlideDir('right')
     if (step < 2) {
       setStep(step + 1)
     } else {
       completeOnboarding()
     }
+  }
+
+  // Handle going back
+  const goBack = (targetStep) => {
+    setSlideDir('left')
+    setStep(targetStep)
   }
 
   // Check if can proceed
@@ -294,6 +240,13 @@ export default function OnboardingPage() {
     if (step === 2) return aiStyleSelections.length > 0
     return false
   }
+
+  // Step animation class — initial load fades in, navigation slides
+  const stepAnimation = slideDir === null
+    ? 'animate-fade-in'
+    : slideDir === 'right'
+      ? 'animate-slide-in-right'
+      : 'animate-slide-in-left'
 
   if (isLoading) {
     return (
@@ -313,6 +266,12 @@ export default function OnboardingPage() {
       className="min-h-screen relative overflow-hidden flex items-center justify-center p-6"
       style={{ background: 'linear-gradient(135deg, hsl(34 42% 92%) 0%, hsl(34 35% 89%) 50%, hsl(34 40% 91%) 100%)' }}
     >
+      {/* Top-left logo */}
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
+        <img src="/logo.png" alt="Founder Note" className="w-10 h-10 rounded-xl shadow-sm" />
+        <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
+      </div>
+
       {/* Decorative background elements */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Orbs in diagonal corners */}
@@ -330,12 +289,12 @@ export default function OnboardingPage() {
         />
 
         {/* Concentric rings */}
-        <div className="auth-ring auth-ring-1" />
-        <div className="auth-ring auth-ring-2" />
-        <div className="auth-ring auth-ring-3" />
-        <div className="auth-ring auth-ring-4" />
-        <div className="auth-ring auth-ring-5" />
-        <div className="auth-ring auth-ring-6" />
+        <div className="auth-ring auth-ring-1" style={{ width: 400, height: 400 }} />
+        <div className="auth-ring auth-ring-2" style={{ width: 720, height: 720 }} />
+        <div className="auth-ring auth-ring-3" style={{ width: 1040, height: 1040 }} />
+        <div className="auth-ring auth-ring-4" style={{ width: 1360, height: 1360 }} />
+        <div className="auth-ring auth-ring-5" style={{ width: 1680, height: 1680 }} />
+        <div className="auth-ring auth-ring-6" style={{ width: 2000, height: 2000 }} />
 
         {/* Dot grid */}
         <div
@@ -363,144 +322,124 @@ export default function OnboardingPage() {
             boxShadow: '0 8px 32px -8px hsl(355 48% 39% / 0.08), 0 2px 6px hsl(34 30% 50% / 0.1)',
           }}
         >
-          {/* Step 0: Welcome */}
-          {step === 0 && (
-            <div className="p-8 md:p-12 text-center animate-fade-in">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 border"
-                style={{
-                  background: 'hsl(355 48% 39% / 0.08)',
-                  borderColor: 'hsl(355 48% 39% / 0.15)',
-                }}
-              >
-                <Sparkles className="w-8 h-8 text-primary" />
-              </div>
+          <div key={step} className={stepAnimation}>
+            {/* Step 0: Welcome */}
+            {step === 0 && (
+              <div className="p-8 md:p-12 text-center">
+                <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3 tracking-[-0.01em]">
+                  Welcome, {userName}
+                </h1>
 
-              <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3 tracking-[-0.01em]">
-                Welcome, {userName}
-              </h1>
-
-              <p className="text-muted-foreground text-base md:text-lg mb-8 max-w-md mx-auto leading-relaxed">
-                A few quick questions to shape your experience.
-              </p>
-
-              <div
-                className="p-4 rounded-xl border mb-8 max-w-sm mx-auto"
-                style={{
-                  background: 'hsl(34 30% 93% / 0.5)',
-                  borderColor: 'hsl(34 25% 82% / 0.6)',
-                }}
-              >
-                <p className="text-sm text-muted-foreground">
-                  We use this to tailor your summaries and AI responses.
+                <p className="text-muted-foreground text-base md:text-lg mb-10 max-w-md mx-auto leading-relaxed">
+                  A few quick questions to shape your experience.
                 </p>
-              </div>
 
-              <Button
-                size="lg"
-                onClick={handleNext}
-                className="h-12 px-8 rounded-xl font-medium text-base"
-              >
-                {"Let's go"}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 1: Usage Preferences */}
-          {step === 1 && (
-            <div className="p-8 md:p-10 animate-fade-in">
-              <div className="text-center mb-8">
-                <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">
-                  What do you want to capture?
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Select all that apply
-                </p>
-              </div>
-
-              <div className="grid gap-3 mb-8">
-                {usageOptions.map((option, i) => (
-                  <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
-                    <SelectableChip
-                      option={option}
-                      selected={usageSelections.includes(option.id)}
-                      onToggle={() => toggleUsage(option.id)}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => setStep(0)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Back
-                </button>
                 <Button
+                  size="lg"
                   onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="h-11 px-6 rounded-xl"
+                  className="h-12 px-8 rounded-xl font-medium text-base"
                 >
-                  Continue
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  {"Let's go"}
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 2: AI Style Preferences */}
-          {step === 2 && (
-            <div className="p-8 md:p-10 animate-fade-in">
-              <div className="text-center mb-8">
-                <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">
-                  How should AI help you?
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Select your preferred output styles
-                </p>
-              </div>
+            {/* Step 1: Usage Preferences */}
+            {step === 1 && (
+              <div className="p-8 md:p-10">
+                <div className="text-center mb-8">
+                  <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">
+                    What do you want to capture?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Select all that apply
+                  </p>
+                </div>
 
-              <div className="grid gap-3 mb-8">
-                {aiStyleOptions.map((option, i) => (
-                  <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
-                    <SelectableChip
-                      option={option}
-                      selected={aiStyleSelections.includes(option.id)}
-                      onToggle={() => toggleAiStyle(option.id)}
-                    />
-                  </div>
-                ))}
-              </div>
+                <div className="grid gap-3 mb-8">
+                  {usageOptions.map((option, i) => (
+                    <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
+                      <SelectableChip
+                        option={option}
+                        selected={usageSelections.includes(option.id)}
+                        onToggle={() => toggleUsage(option.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
 
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Back
-                </button>
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed() || isSaving}
-                  className="h-11 px-6 rounded-xl"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Setting up...
-                    </>
-                  ) : (
-                    <>
-                      Start using Founder Note
-                      <Sparkles className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => goBack(0)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Back
+                  </button>
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="h-11 px-6 rounded-xl"
+                  >
+                    Continue
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Step 2: AI Style Preferences */}
+            {step === 2 && (
+              <div className="p-8 md:p-10">
+                <div className="text-center mb-8">
+                  <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-[-0.01em]">
+                    How should AI help you?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Select your preferred output styles
+                  </p>
+                </div>
+
+                <div className="grid gap-3 mb-8">
+                  {aiStyleOptions.map((option, i) => (
+                    <div key={option.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}>
+                      <SelectableChip
+                        option={option}
+                        selected={aiStyleSelections.includes(option.id)}
+                        onToggle={() => toggleAiStyle(option.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => goBack(1)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Back
+                  </button>
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed() || isSaving}
+                    className="h-11 px-6 rounded-xl"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      <>
+                        Start using Founder Note
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Skip option */}

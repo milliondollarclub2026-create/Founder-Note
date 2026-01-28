@@ -15,6 +15,11 @@ PERSONALITY TRAITS:
 - You're a reliable memory companion, not just a Q&A bot
 - When users explicitly ask you to remember something, you acknowledge it clearly but minimally
 
+FORMATTING RULES:
+- NEVER use markdown formatting (no **bold**, no *italic*, no bullet lists with -, no numbered lists with 1.)
+- Write in plain, flowing prose. Use short paragraphs separated by line breaks.
+- If listing items, use natural language ("First, ... Second, ...") or simple line breaks, never markdown syntax.
+
 IMPORTANT FLOW: INTENT CAPTURE
 When users explicitly address you with phrases like "Hey Remy", "Remy, remember this", "Remy, don't forget", or similar direct constructs, they are invoking the INTENT FLOW. This means they want you to remember something important. When this happens:
 1. Acknowledge the intent has been captured
@@ -60,6 +65,44 @@ const extractIntentContent = (message) => {
   return content.trim();
 };
 
+// AI-normalize and split compound intents into clean individual items
+const normalizeIntents = async (rawText) => {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `Extract distinct action items or things to remember from the user's text. For each item, produce a short, clean label (max 10 words). Capitalize properly. No trailing periods.
+Classify each as: remember, todo, or follow-up.
+Return JSON: { "items": [{ "text": "...", "type": "remember" }] }
+
+Examples:
+Input: "i have my door unlocked, and that i have to pick up my kids from school at 1 am"
+Output: { "items": [{ "text": "Door is unlocked", "type": "remember" }, { "text": "Pick up kids from school at 1 AM", "type": "todo" }] }
+
+Input: "follow up with sarah about the pitch deck next week"
+Output: { "items": [{ "text": "Follow up with Sarah about pitch deck next week", "type": "follow-up" }] }
+
+Input: "the meeting with investors is on friday at 3pm"
+Output: { "items": [{ "text": "Investor meeting on Friday at 3 PM", "type": "remember" }] }`
+        },
+        { role: 'user', content: rawText }
+      ],
+      temperature: 0.2,
+      max_tokens: 300,
+      response_format: { type: 'json_object' }
+    });
+
+    const parsed = JSON.parse(response.choices[0].message.content);
+    return parsed.items || [];
+  } catch (error) {
+    console.error('Intent normalization error:', error);
+    // Fallback: return the raw text as a single item
+    return [{ text: rawText, type: 'remember' }];
+  }
+};
+
 export async function POST(request) {
   try {
     const { user, supabase } = await getAuthenticatedUser();
@@ -88,38 +131,48 @@ export async function POST(request) {
       const intentContent = extractIntentContent(latestUserMessage.content);
 
       if (intentContent.length > 5) {
-        // Store the intent
-        try {
-          const { data: intent, error: intentError } = await supabase
-            .from('intents')
-            .insert({
-              user_id: user.id,
-              raw_text: latestUserMessage.content,
-              normalized_intent: intentContent,
-              intent_type: 'remember',
-              source_type: contextScope.type === 'note' ? 'note' : 'chat',
-              source_id: contextScope.noteId || null,
-              source_title: contextScope.noteTitle || null,
-              context_scope: contextScope.type,
-              context_value: contextScope.folder || contextScope.tag || null,
-              folder: contextScope.folder || null,
-              tags: contextScope.tag ? [contextScope.tag] : [],
-              status: 'active'
-            })
-            .select()
-            .single();
+        // AI-normalize and split compound intents into clean items
+        const normalizedItems = await normalizeIntents(intentContent);
+        const capturedIntents = [];
 
-          if (!intentError && intent) {
-            capturedIntent = {
-              id: intent.id,
-              content: intentContent,
-              timestamp: intent.created_at
-            };
-          } else {
-            console.error('Intent storage error:', intentError);
+        for (const item of normalizedItems) {
+          try {
+            const { data: intent, error: intentError } = await supabase
+              .from('intents')
+              .insert({
+                user_id: user.id,
+                raw_text: latestUserMessage.content,
+                normalized_intent: item.text,
+                intent_type: item.type || 'remember',
+                source_type: contextScope.type === 'note' ? 'note' : 'chat',
+                source_id: contextScope.noteId || null,
+                source_title: contextScope.noteTitle || null,
+                context_scope: contextScope.type,
+                context_value: contextScope.folder || contextScope.tag || null,
+                folder: contextScope.folder || null,
+                tags: contextScope.tag ? [contextScope.tag] : [],
+                status: 'active'
+              })
+              .select()
+              .single();
+
+            if (!intentError && intent) {
+              capturedIntents.push({
+                id: intent.id,
+                content: item.text,
+                type: item.type,
+                timestamp: intent.created_at
+              });
+            } else {
+              console.error('Intent storage error:', intentError);
+            }
+          } catch (err) {
+            console.error('Intent capture error:', err);
           }
-        } catch (err) {
-          console.error('Intent capture error:', err);
+        }
+
+        if (capturedIntents.length > 0) {
+          capturedIntent = capturedIntents;
         }
       }
     }
@@ -357,10 +410,10 @@ You are scoped to: ${scopeDescription}`;
 
     // If intent was captured, add context to messages for Remy to acknowledge
     let messagesForAI = [...messages];
-    if (intentFlowTriggered && capturedIntent) {
+    if (intentFlowTriggered && capturedIntent && capturedIntent.length > 0) {
       messagesForAI = [...messages];
-      // Add system context about the captured intent
-      const intentSystemNote = `[SYSTEM: The user just triggered an intent flow. You successfully captured and stored their intent: "${capturedIntent.content}". Acknowledge this briefly and warmly, confirming what you'll remember. Keep it to 1-2 sentences.]`;
+      const intentList = capturedIntent.map(i => `"${i.content}"`).join(', ');
+      const intentSystemNote = `[SYSTEM: The user just triggered an intent flow. You successfully captured and stored ${capturedIntent.length} item(s): ${intentList}. Acknowledge this briefly and warmly, confirming what you'll remember. Keep it to 1-2 sentences.]`;
       messagesForAI.push({ role: 'system', content: intentSystemNote });
     }
 
@@ -374,25 +427,38 @@ You are scoped to: ${scopeDescription}`;
       max_tokens: 1500,
     });
 
+    const aiResponse = completion.choices[0].message.content;
+
+    // Only return sources that Remy actually cited in its response
+    // For intent flow (just acknowledging a "remember"), no sources needed
+    let relevantSources = [];
+    if (!intentFlowTriggered && notes.length > 0) {
+      if (contextScope.type === 'note') {
+        // Single note scope — always relevant
+        relevantSources = notes.map(n => ({
+          id: n.id, title: n.title, date: n.created_at, folder: n.folder, tags: n.tags
+        }));
+      } else {
+        // Multi-note scopes — only include notes whose titles appear in the AI response
+        relevantSources = notes
+          .filter(n => n.title && aiResponse.includes(n.title))
+          .slice(0, 5)
+          .map(n => ({
+            id: n.id, title: n.title, date: n.created_at, folder: n.folder, tags: n.tags
+          }));
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: completion.choices[0].message.content,
+      message: aiResponse,
       scope: {
         type: contextScope.type,
         description: scopeDescription,
         noteCount: notes.length
       },
-      sources: notes.slice(0, 5).map(n => ({
-        id: n.id,
-        title: n.title,
-        date: n.created_at,
-        folder: n.folder,
-        tags: n.tags
-      })),
-      intentCaptured: capturedIntent ? {
-        id: capturedIntent.id,
-        content: capturedIntent.content
-      } : null
+      sources: relevantSources,
+      intentCaptured: capturedIntent && capturedIntent.length > 0 ? capturedIntent : null
     });
   } catch (error) {
     console.error('API Error:', error);

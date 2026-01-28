@@ -81,23 +81,64 @@ export async function POST(request) {
       return NextResponse.json({ error: noteError.message }, { status: 500 });
     }
 
-    // Insert action items as todos if present
+    // Split action items into regular todos and Remy-directed intents
     if (actionItems && actionItems.length > 0) {
-      const todosToInsert = actionItems.map(item => ({
-        id: uuidv4(),
-        user_id: user.id,
-        note_id: noteId,
-        title: typeof item === 'string' ? item : item.task || item.title || item,
-        completed: false,
-        created_at: new Date().toISOString()
-      }));
+      const regularTodos = [];
+      const remyIntents = [];
 
-      const { error: todosError } = await supabase
-        .from('todos')
-        .insert(todosToInsert);
+      actionItems.forEach(item => {
+        if (typeof item === 'string') {
+          regularTodos.push(item);
+        } else if (item.type === 'remy') {
+          remyIntents.push(item);
+        } else {
+          regularTodos.push(item);
+        }
+      });
 
-      if (todosError) {
-        console.error('Todos insert error:', todosError);
+      // Insert regular todos
+      if (regularTodos.length > 0) {
+        const todosToInsert = regularTodos.map(item => ({
+          id: uuidv4(),
+          user_id: user.id,
+          note_id: noteId,
+          title: typeof item === 'string' ? item : item.task || item.title || String(item),
+          completed: false,
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: todosError } = await supabase
+          .from('todos')
+          .insert(todosToInsert);
+
+        if (todosError) {
+          console.error('Todos insert error:', todosError);
+        }
+      }
+
+      // Insert Remy-directed items as intents
+      if (remyIntents.length > 0) {
+        const intentsToInsert = remyIntents.map(item => ({
+          id: uuidv4(),
+          user_id: user.id,
+          raw_text: item.task,
+          normalized_intent: item.task,
+          intent_type: 'remember',
+          source_type: 'note',
+          source_id: noteId,
+          source_title: title || 'Untitled Note',
+          context_scope: 'note',
+          status: 'active',
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: intentsError } = await supabase
+          .from('intents')
+          .insert(intentsToInsert);
+
+        if (intentsError) {
+          console.error('Intents insert error:', intentsError);
+        }
       }
     }
 

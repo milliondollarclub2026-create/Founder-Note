@@ -133,7 +133,7 @@ export const NoteCard = ({ note, onClick, onDelete, onStar, onAddTag, onAddToFol
 }
 
 // Note Row (List View)
-export const NoteRow = ({ note, onClick, onDelete, onStar, allTags }) => {
+export const NoteRow = ({ note, onClick, onDelete, onStar, onAddTag, onAddToFolder, allTags, folders = [] }) => {
   const [showActions, setShowActions] = useState(false)
   const [starBounce, setStarBounce] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -163,40 +163,101 @@ export const NoteRow = ({ note, onClick, onDelete, onStar, allTags }) => {
       onClick={onClick}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setConfirmDelete(false); clearTimeout(deleteTimeout.current) }}
-      className={`group flex items-center gap-4 px-4 py-3 rounded-xl border bg-card cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30 ${note.starred ? 'border-l-2 border-l-primary border-border' : 'border-border'}`}
+      className={`group flex flex-col px-4 py-4 rounded-xl border bg-card cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30 ${note.starred ? 'border-l-2 border-l-primary border-border' : 'border-border'}`}
     >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          {note.starred && <Star className="w-3 h-3 fill-primary text-primary flex-shrink-0" />}
-          <h3 className="font-medium text-sm text-foreground truncate">{note.title}</h3>
+      {/* Top row: star + title + folder | time/actions */}
+      <div className="flex items-center gap-2 mb-1">
+        {note.starred && <Star className="w-3 h-3 fill-primary text-primary flex-shrink-0" />}
+        <h3 className="font-medium text-sm text-foreground truncate">{note.title}</h3>
+        {note.folder && (
+          <span
+            className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-medium flex-shrink-0"
+            style={{ backgroundColor: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))', border: '1px solid hsl(var(--primary) / 0.15)' }}
+          >
+            <Folder className="w-2.5 h-2.5" />
+            {note.folder}
+          </span>
+        )}
+
+        {/* Time / Actions — far right, swap on hover */}
+        <div className="ml-auto flex items-center flex-shrink-0 relative h-7">
+          <span className={`text-[11px] text-muted-foreground whitespace-nowrap transition-opacity duration-200 ${showActions ? 'opacity-0' : 'opacity-100'}`}>
+            {formatDate(note.created_at)}
+          </span>
+          <div className={`absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-0.5 transition-all duration-200 ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <button onClick={(e) => { e.stopPropagation(); setStarBounce(true); setTimeout(() => setStarBounce(false), 300); onStar(note.id, !note.starred); }} className="p-1.5 rounded-md hover:bg-secondary transition-smooth">
+              <Star className={`w-3.5 h-3.5 transition-transform ${starBounce ? 'animate-star-bounce' : ''} ${note.starred ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
+            </button>
+            {onAddTag && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-md hover:bg-secondary transition-smooth">
+                    <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <div className="px-2 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Add Tag</div>
+                  {allTags.filter(t => !note.tags?.includes(t.name)).map(tag => (
+                    <DropdownMenuItem key={tag.name} onClick={(e) => { e.stopPropagation(); onAddTag(note.id, tag); }} className="gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: getTagColor(tag.color) }} />
+                      <span className="font-medium">{tag.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  {allTags.length === 0 && (
+                    <div className="px-2 py-2 text-xs text-muted-foreground">No tags yet</div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {onAddToFolder && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-md hover:bg-secondary transition-smooth">
+                    <Folder className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <div className="px-2 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Move to Folder</div>
+                  {folders.map(f => (
+                    <DropdownMenuItem key={f} onClick={(e) => { e.stopPropagation(); onAddToFolder(note.id, f); }} className={note.folder === f ? 'bg-secondary' : ''}>
+                      <Folder className="w-3.5 h-3.5 mr-2 folder-icon" />
+                      {f}
+                      {note.folder === f && <Check className="w-3 h-3 ml-auto text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirmDelete) {
+                  onDelete(note.id)
+                  setConfirmDelete(false)
+                } else {
+                  setConfirmDelete(true)
+                  deleteTimeout.current = setTimeout(() => setConfirmDelete(false), 2000)
+                }
+              }}
+              className={`p-1.5 rounded-md transition-smooth ${confirmDelete ? 'bg-destructive/15' : 'hover:bg-destructive/10'}`}
+              title={confirmDelete ? 'Click again to delete' : 'Delete note'}
+            >
+              <Trash2 className={`w-3.5 h-3.5 ${confirmDelete ? 'text-destructive' : 'text-muted-foreground hover:text-destructive'}`} />
+            </button>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground truncate">{note.summary || note.transcription?.substring(0, 80)}</p>
       </div>
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        {noteTags.slice(0, 2).map(tag => <TagBadge key={tag.name} tag={tag} />)}
-      </div>
-      <span className="text-[11px] text-muted-foreground w-16 text-right flex-shrink-0">{formatDate(note.created_at)}</span>
-      <div className={`flex items-center gap-0.5 transition-all duration-200 ${showActions ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none'}`}>
-        <button onClick={(e) => { e.stopPropagation(); setStarBounce(true); setTimeout(() => setStarBounce(false), 300); onStar(note.id, !note.starred); }} className="p-1.5 rounded-lg hover:bg-secondary transition-smooth">
-          <Star className={`w-3.5 h-3.5 transition-transform ${starBounce ? 'animate-star-bounce' : ''} ${note.starred ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            if (confirmDelete) {
-              onDelete(note.id)
-              setConfirmDelete(false)
-            } else {
-              setConfirmDelete(true)
-              deleteTimeout.current = setTimeout(() => setConfirmDelete(false), 2000)
-            }
-          }}
-          className={`p-1.5 rounded-lg transition-smooth ${confirmDelete ? 'bg-destructive/15' : 'hover:bg-destructive/10'}`}
-          title={confirmDelete ? 'Click again to delete' : 'Delete note'}
-        >
-          <Trash2 className={`w-3.5 h-3.5 ${confirmDelete ? 'text-destructive' : 'text-muted-foreground hover:text-destructive'}`} />
-        </button>
-      </div>
+
+      {/* Summary */}
+      <p className="text-xs text-muted-foreground truncate">{note.summary || note.transcription?.substring(0, 80)}</p>
+
+      {/* Tags below */}
+      {noteTags.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap mt-2.5">
+          {noteTags.slice(0, 3).map(tag => <TagBadge key={tag.name} tag={tag} />)}
+          {noteTags.length > 3 && <span className="text-[10px] text-muted-foreground">+{noteTags.length - 3}</span>}
+        </div>
+      )}
     </div>
   )
 }

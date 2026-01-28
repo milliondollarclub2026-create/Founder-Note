@@ -27,8 +27,12 @@ Extract and return a JSON object with:
 - title: A short, descriptive title (max 50 chars)
 - summary: 2-3 sentence summary of the key content
 - key_points: Array of bullet points (main ideas/insights, 3-7 points)
-- action_items: Array of actionable tasks mentioned (if any)
+- action_items: Array of actionable tasks. Each item is an object with:
+  - task: The action item text (short, clean, properly capitalized, max 12 words)
+  - type: "todo" for regular tasks the user will do themselves, OR "remy" for tasks explicitly directed at Remy/the AI assistant (e.g. "Remy remind me...", "I need Remy to...", "remind me to...")
 - tags: Array of 2-5 relevant tags/categories
+
+IMPORTANT: If the user mentions Remy by name or asks to be reminded of something, classify that item as type "remy". All other actionable tasks are type "todo".
 
 Return ONLY valid JSON, no markdown or explanation.`
         },

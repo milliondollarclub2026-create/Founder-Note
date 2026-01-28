@@ -1,8 +1,22 @@
 import './globals.css'
+import { Instrument_Serif, DM_Sans } from 'next/font/google'
 import { Toaster } from 'sonner'
 
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+})
+
 export const metadata = {
-  title: 'FounderNotes - AI Voice Notes for Founders',
+  title: 'Founder Note - AI Voice Notes for Founders',
   description: 'Capture ideas with voice, get AI-powered transcription and insights automatically.',
   icons: {
     icon: '/favicon.ico',
@@ -12,7 +26,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background antialiased">
+      <body className={`${instrumentSerif.variable} ${dmSans.variable} min-h-screen bg-background antialiased`}>
         {children}
         <Toaster 
           position="bottom-right" 

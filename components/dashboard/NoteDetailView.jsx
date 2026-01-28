@@ -1,33 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowLeft, Search, Copy, Check, Sparkles, FileText, Tag, Folder, X,
-  Edit3, Save, Loader2, RefreshCw, Square, Mic, Send, ChevronUp,
-  MessageCircle
+  Edit3, Save, Loader2, RefreshCw, Square, Mic
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
+
 import { SearchResults } from './SearchResults'
 import { Waveform } from './Waveform'
+import { ContextAwareChatBar } from './ChatPanel'
 import { getTagStyle } from '@/lib/tag-colors'
 
 // Formatted Smartified Text Component
 const SmartifiedTextDisplay = ({ text, isEditing, onTextChange }) => {
-  if (isEditing) {
-    return (
-      <textarea
-        value={text}
-        onChange={(e) => onTextChange(e.target.value)}
-        className="w-full min-h-[300px] p-4 rounded-xl bg-secondary/30 border border-border text-base leading-relaxed font-mono resize-none focus:outline-none focus:border-primary/50 transition-colors"
-        placeholder="Edit your smartified text..."
-      />
-    )
-  }
-
   // Parse and render the structured smartified text
   const renderFormattedText = (content) => {
     if (!content) return null
@@ -88,6 +77,24 @@ const SmartifiedTextDisplay = ({ text, isEditing, onTextChange }) => {
     return elements
   }
 
+  if (isEditing) {
+    return (
+      <div className="relative">
+        <div className="absolute top-3 left-4 flex items-center gap-1.5 pointer-events-none">
+          <Edit3 className="w-3 h-3 text-primary/30" />
+          <span className="text-[10px] text-primary/30 font-medium uppercase tracking-wider">Editing</span>
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => onTextChange(e.target.value)}
+          className="w-full min-h-[300px] pt-9 px-4 pb-4 rounded-xl bg-card border-2 border-primary/15 text-base leading-relaxed resize-none focus:outline-none focus:border-primary/30 transition-colors selection:bg-primary/10"
+          placeholder="Edit your smartified text..."
+          style={{ fontFamily: 'inherit' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="prose prose-sm max-w-none">
       {renderFormattedText(text)}
@@ -116,11 +123,9 @@ export const NoteDetailView = ({
   searchResults,
   showSearchResults,
   setShowSearchResults,
-  onSelectSearchResult
+  onSelectSearchResult,
+  onIntentCaptured
 }) => {
-  const [chatMessages, setChatMessages] = useState([])
-  const [chatInput, setChatInput] = useState('')
-  const [isChatLoading, setIsChatLoading] = useState(false)
   const [isChatExpanded, setIsChatExpanded] = useState(false)
   const [showTagPicker, setShowTagPicker] = useState(false)
   const [showFolderPicker, setShowFolderPicker] = useState(false)
@@ -136,12 +141,6 @@ export const NoteDetailView = ({
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showCopied, setShowCopied] = useState(false)
-
-  const chatEndRef = useRef(null)
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages])
 
   // Initialize edited text when note changes
   useEffect(() => {
@@ -162,7 +161,7 @@ export const NoteDetailView = ({
     }
   }
 
-  // Save transcript changes
+  // Save transcript changes and auto-regenerate AI content
   const saveChanges = async () => {
     setIsSaving(true)
     try {
@@ -176,30 +175,25 @@ export const NoteDetailView = ({
         body: JSON.stringify(updateData)
       })
 
-      if (!response.ok) throw new Error('Failed to save')
+      const data = await response.json().catch(() => ({}))
 
-      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || `Save failed (${response.status})`)
+      }
 
-      // Update parent state
-      if (onUpdateNote) {
+      // Update parent state with server response
+      if (onUpdateNote && data.note) {
         onUpdateNote(data.note)
       }
 
       setHasUnsavedChanges(false)
       setIsEditing(false)
-      toast.success('Changes saved')
+      toast.success('Saved — updating AI insights...')
 
-      // Prompt to regenerate AI content
-      toast('Regenerate AI Summary?', {
-        description: 'Update summary and key points based on your edits',
-        action: {
-          label: 'Regenerate',
-          onClick: () => regenerateAIContent()
-        },
-        duration: 5000
-      })
+      // Auto-regenerate AI content after saving
+      regenerateAIContent()
     } catch (error) {
-      toast.error('Failed to save changes')
+      toast.error(error.message || 'Failed to save changes')
       console.error('Save error:', error)
     } finally {
       setIsSaving(false)
@@ -260,35 +254,6 @@ export const NoteDetailView = ({
     setShowCopied(true)
     setTimeout(() => setShowCopied(false), 1500)
     toast.success('Copied to clipboard')
-  }
-
-  const sendMessage = async () => {
-    if (!chatInput.trim()) return
-    const userMsg = { role: 'user', content: chatInput }
-    setChatMessages(prev => [...prev, userMsg])
-    setChatInput('')
-    setIsChatLoading(true)
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...chatMessages, userMsg],
-          contextScope: {
-            type: 'note',
-            noteId: note.id,
-            noteTitle: note.title
-          }
-        })
-      })
-      const data = await response.json()
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.message, sources: data.sources }])
-    } catch (error) {
-      toast.error('Failed to send message')
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }])
-    } finally {
-      setIsChatLoading(false)
-    }
   }
 
   const formatDate = (dateStr) => {
@@ -440,12 +405,17 @@ export const NoteDetailView = ({
 
           {/* Fixed Content: AI Summary - NOT EDITABLE */}
           {note.summary && (
-            <div className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/10 border-l-[3px] border-l-primary/30 ring-1 ring-primary/5 mb-8 relative">
+            <div className={`p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/10 border border-primary/10 border-l-[3px] border-l-primary/30 ring-1 ring-primary/5 mb-8 relative transition-all duration-500 ${isRegenerating ? 'scale-[0.99]' : ''}`}>
               {isRegenerating && (
-                <div className="absolute inset-0 bg-background/80 rounded-xl flex items-center justify-center z-10">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm font-medium">Regenerating...</span>
+                <div className="absolute inset-0 bg-card/50 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10 animate-fade-in">
+                  <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-card/95 border border-primary/10 shadow-md animate-fade-in">
+                    <Sparkles className="w-3.5 h-3.5 text-primary animate-breathe" />
+                    <span className="text-xs font-medium text-primary/70">Updating summary</span>
+                    <div className="flex gap-0.5">
+                      <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '0s', animationDuration: '1s' }} />
+                      <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '0.15s', animationDuration: '1s' }} />
+                      <span className="w-1 h-1 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '1s' }} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -459,11 +429,12 @@ export const NoteDetailView = ({
 
           {/* Fixed Content: Key Points - NOT EDITABLE */}
           {note.key_points?.length > 0 && (
-            <div className="mb-8 relative">
+            <div className={`mb-8 relative transition-all duration-500 ${isRegenerating ? 'scale-[0.99]' : ''}`}>
               {isRegenerating && (
-                <div className="absolute inset-0 bg-background/80 rounded-xl flex items-center justify-center z-10">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10 animate-fade-in">
+                  <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-card/95 border border-primary/10 shadow-md animate-fade-in">
+                    <RefreshCw className="w-3.5 h-3.5 text-primary animate-spin" style={{ animationDuration: '1.5s' }} />
+                    <span className="text-xs font-medium text-primary/70">Updating key points</span>
                   </div>
                 </div>
               )}
@@ -492,12 +463,12 @@ export const NoteDetailView = ({
               <div className="flex items-center gap-2">
                 {/* Edit/Save buttons */}
                 {isEditing ? (
-                  <div className="flex items-center gap-2 mr-4">
+                  <div className="flex items-center gap-2 mr-4 animate-fade-in">
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={cancelEditing}
-                      className="h-8 px-3 text-xs"
+                      className="h-8 px-3 text-xs text-muted-foreground"
                     >
                       Cancel
                     </Button>
@@ -508,7 +479,7 @@ export const NoteDetailView = ({
                       className="h-8 px-3 text-xs gap-1.5"
                     >
                       {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                      Save
+                      Save &amp; Update
                     </Button>
                   </div>
                 ) : (
@@ -533,15 +504,15 @@ export const NoteDetailView = ({
                   />
                   <button
                     onClick={() => setTextMode('smart')}
-                    className={`relative z-10 px-3 py-1.5 text-xs rounded-md transition-colors duration-200 font-medium ${textMode === 'smart' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`relative z-10 flex items-center justify-center gap-1.5 w-24 py-1.5 text-xs rounded-md transition-colors duration-200 font-medium whitespace-nowrap ${textMode === 'smart' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    <Sparkles className="w-3 h-3 inline mr-1.5" />Smartified
+                    <Sparkles className="w-3 h-3 flex-shrink-0" />Smartified
                   </button>
                   <button
                     onClick={() => setTextMode('raw')}
-                    className={`relative z-10 px-3 py-1.5 text-xs rounded-md transition-colors duration-200 font-medium ${textMode === 'raw' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`relative z-10 flex items-center justify-center gap-1.5 w-24 py-1.5 text-xs rounded-md transition-colors duration-200 font-medium whitespace-nowrap ${textMode === 'raw' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    <FileText className="w-3 h-3 inline mr-1.5" />Raw
+                    <FileText className="w-3 h-3 flex-shrink-0" />Raw
                   </button>
                 </div>
               </div>
@@ -549,8 +520,8 @@ export const NoteDetailView = ({
 
             {/* Unsaved changes indicator */}
             {hasUnsavedChanges && (
-              <div className="flex items-center gap-2 mb-3 text-amber-600 text-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <div className="flex items-center gap-2 mb-3 text-primary/70 text-xs animate-fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-pulse" />
                 Unsaved changes
               </div>
             )}
@@ -572,14 +543,21 @@ export const NoteDetailView = ({
                 </div>
               )
             ) : (
-              <div className="p-6 rounded-xl bg-muted/30 border border-border">
+              <div className={`p-6 rounded-xl ${isEditing ? 'bg-card border-2 border-primary/15' : 'bg-muted/30 border border-border'} transition-colors`}>
                 {isEditing ? (
-                  <textarea
-                    value={editedRawText}
-                    onChange={(e) => handleTextChange(e.target.value)}
-                    className="w-full min-h-[300px] p-0 bg-transparent text-base leading-relaxed resize-none focus:outline-none"
-                    placeholder="Edit your transcription..."
-                  />
+                  <div className="relative">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Edit3 className="w-3 h-3 text-primary/30" />
+                      <span className="text-[10px] text-primary/30 font-medium uppercase tracking-wider">Editing</span>
+                    </div>
+                    <textarea
+                      value={editedRawText}
+                      onChange={(e) => handleTextChange(e.target.value)}
+                      className="w-full min-h-[300px] p-0 bg-transparent text-base leading-relaxed resize-none focus:outline-none selection:bg-primary/10"
+                      placeholder="Edit your transcription..."
+                      style={{ fontFamily: 'inherit' }}
+                    />
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {/* Format raw text into readable paragraphs */}
@@ -650,76 +628,16 @@ export const NoteDetailView = ({
             )}
           </div>
 
-          {/* Chat Bar - Note-scoped context */}
+          {/* Chat Bar - Note-scoped, uses shared component for consistency */}
           <div className="pointer-events-auto">
-            {!isChatExpanded ? (
-              <div onClick={() => setIsChatExpanded(true)} className="flex items-center gap-4 px-6 py-3.5 rounded-2xl bg-card border border-emerald-200 shadow-lg cursor-pointer hover:shadow-xl hover:border-emerald-300 transition-smooth w-full max-w-[550px]">
-                <FileText className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                <span className="text-sm text-muted-foreground flex-1">Ask about this note...</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">Note Scope</span>
-                <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              </div>
-            ) : (
-              <div className="bg-card border border-emerald-200 rounded-2xl shadow-xl animate-slide-up overflow-hidden w-full max-w-[550px]">
-                <div className="flex items-center justify-between px-4 py-3 border-b bg-emerald-50">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-600" />
-                    <div>
-                      <span className="text-sm font-medium text-emerald-800">Focused on: {note.title?.substring(0, 30)}{note.title?.length > 30 ? '...' : ''}</span>
-                      <p className="text-[10px] text-emerald-600">I can only see this note&apos;s content</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setIsChatExpanded(false)} className="p-1.5 rounded-lg hover:bg-emerald-100 transition-smooth">
-                    <X className="w-4 h-4 text-emerald-700" />
-                  </button>
-                </div>
-                <ScrollArea className="h-64 px-4 py-3">
-                  <div className="space-y-3">
-                    {chatMessages.length === 0 && (
-                      <div className="text-center py-8">
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
-                          <MessageCircle className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">Ask questions about this specific note</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">&quot;What are the key takeaways?&quot; or &quot;Summarize the action items&quot;</p>
-                      </div>
-                    )}
-                    {chatMessages.map((msg, i) => (
-                      <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
-                        <div className={msg.role === 'user' ? 'max-w-[85%] px-3 py-2 rounded-xl text-sm bg-primary text-primary-foreground' : 'max-w-[85%] px-3 py-2 rounded-xl text-sm bg-secondary'}>
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {isChatLoading && (
-                      <div className="flex">
-                        <div className="bg-secondary px-3 py-2 rounded-xl flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span className="text-xs text-muted-foreground">Analyzing note...</span>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                </ScrollArea>
-                <div className="px-4 py-3 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Ask about this note..."
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                      className="flex-1 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:border-emerald-300"
-                      autoFocus
-                    />
-                    <Button size="sm" onClick={sendMessage} disabled={!chatInput.trim() || isChatLoading} className="h-9 px-4">
-                      <Send className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ContextAwareChatBar
+              contextScope={{ type: 'note', noteId: note.id, noteTitle: note.title }}
+              isExpanded={isChatExpanded}
+              onToggle={() => setIsChatExpanded(!isChatExpanded)}
+              noteCount={1}
+              onSelectNote={(source) => onSelectSearchResult?.(source)}
+              onIntentCaptured={onIntentCaptured}
+            />
           </div>
         </div>
       </div>

@@ -15,7 +15,12 @@ export async function POST(request) {
     const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
 
     if (!storeId || !variantId || !apiKey) {
-      console.error('Missing Lemon Squeezy configuration');
+      const missing = [
+        !storeId && 'LEMON_SQUEEZY_STORE_ID',
+        !variantId && 'LEMON_SQUEEZY_VARIANT_ID',
+        !apiKey && 'LEMON_SQUEEZY_API_KEY',
+      ].filter(Boolean)
+      console.error('Missing Lemon Squeezy configuration:', missing.join(', '));
       return NextResponse.json({ error: 'Payment configuration error' }, { status: 500 });
     }
 

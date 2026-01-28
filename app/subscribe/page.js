@@ -43,7 +43,7 @@ export default function SubscribePage() {
 
       if (profile?.subscription_status === 'active') {
         // Already subscribed, go to dashboard
-        router.push('/')
+        router.push('/dashboard')
         return
       }
 
@@ -77,7 +77,7 @@ export default function SubscribePage() {
 
         if (profile?.subscription_status === 'active') {
           clearInterval(pollInterval)
-          router.push('/')
+          router.push('/dashboard')
         }
       }, 2000) // Poll every 2 seconds
 
@@ -196,13 +196,13 @@ export default function SubscribePage() {
           style={{ background: 'hsl(25 45% 50% / 0.1)' }}
         />
 
-        {/* Concentric rings */}
-        <div className="auth-ring auth-ring-1" />
-        <div className="auth-ring auth-ring-2" />
-        <div className="auth-ring auth-ring-3" />
-        <div className="auth-ring auth-ring-4" />
-        <div className="auth-ring auth-ring-5" />
-        <div className="auth-ring auth-ring-6" />
+        {/* Concentric rings — doubled size for full-page layout */}
+        <div className="auth-ring auth-ring-1" style={{ width: 400, height: 400 }} />
+        <div className="auth-ring auth-ring-2" style={{ width: 720, height: 720 }} />
+        <div className="auth-ring auth-ring-3" style={{ width: 1040, height: 1040 }} />
+        <div className="auth-ring auth-ring-4" style={{ width: 1360, height: 1360 }} />
+        <div className="auth-ring auth-ring-5" style={{ width: 1680, height: 1680 }} />
+        <div className="auth-ring auth-ring-6" style={{ width: 2000, height: 2000 }} />
 
         {/* Dot grid */}
         <div
@@ -214,24 +214,20 @@ export default function SubscribePage() {
         />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 px-6 py-4 flex items-center justify-center">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
-        </div>
-      </header>
+      {/* Top-left logo */}
+      <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
+        <img src="/logo.png" alt="Founder Note" className="w-10 h-10 rounded-xl shadow-sm" />
+        <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
+      </div>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-6 py-12">
+      <main className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-12">
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-[-0.01em]">
-            One plan. Everything included.
+            Shape Founder Note with us.
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Unlimited recordings, AI summaries, and your personal assistant.
+            Join the beta. Get early access and a price that stays.
           </p>
         </div>
 
@@ -254,14 +250,14 @@ export default function SubscribePage() {
               }}
             >
               <p className="text-sm font-medium text-primary uppercase tracking-wide mb-2">
-                Full Access
+                Beta Plan
               </p>
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-5xl font-bold text-foreground tracking-tight">$14.99</span>
                 <span className="text-lg text-muted-foreground">/month</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                Cancel anytime.
+                Locked in. Price increases at launch.
               </p>
             </div>
 
@@ -269,13 +265,13 @@ export default function SubscribePage() {
             <div className="px-8 py-8">
               <ul className="space-y-4">
                 {[
-                  { icon: Mic, text: 'Unlimited recordings' },
+                  { icon: Mic, text: '10 notes and 100 minutes per month' },
                   { icon: Sparkles, text: 'AI transcription and summaries' },
                   { icon: Brain, text: 'Brain Dump synthesis' },
                   { icon: MessageCircle, text: 'Remy, your personal AI assistant' },
                   { icon: Tag, text: 'Tags, folders, and search' },
                   { icon: Zap, text: 'Action items and follow-ups' },
-                  { icon: Shield, text: 'Encrypted cloud backup' },
+                  { icon: Shield, text: 'Early adopter pricing, locked in' },
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}>
                     <div
@@ -312,7 +308,7 @@ export default function SubscribePage() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Get started
+                    Join the beta
                   </>
                 )}
               </Button>
@@ -332,7 +328,7 @@ export default function SubscribePage() {
           {/* Additional info */}
           <p className="text-center text-xs text-muted-foreground/50 mt-6 leading-relaxed">
             By subscribing, you agree to our Terms of Service and Privacy Policy.
-            Your subscription renews monthly until cancelled.
+            Cancel anytime. Your subscription renews monthly until cancelled.
           </p>
         </div>
       </main>

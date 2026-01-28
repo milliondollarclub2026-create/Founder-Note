@@ -49,7 +49,7 @@ export async function middleware(request) {
     // If logged in and trying to access auth page, redirect to home
     if (user && request.nextUrl.pathname === '/auth') {
       const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/'
+      redirectUrl.pathname = '/dashboard'
       return NextResponse.redirect(redirectUrl)
     }
     return supabaseResponse
