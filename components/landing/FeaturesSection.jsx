@@ -72,8 +72,8 @@ export default function FeaturesSection() {
       span: 1,
       illustration: (
         <div className="relative h-32 flex items-center justify-center">
-          <div className="absolute w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'hsl(355 48% 39% / 0.2)' }}>
-            <Mic className="w-7 h-7" style={{ color: 'hsl(355, 48%, 39%)' }} />
+          <div className="absolute w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}>
+            <Mic className="w-7 h-7 text-white" />
           </div>
           <motion.div
             animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.1, 0.4] }}
@@ -153,8 +153,8 @@ export default function FeaturesSection() {
                 animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               />
-              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'hsl(355 48% 39% / 0.2)' }}>
-                <Zap className="w-5 h-5" style={{ color: 'hsl(355, 48%, 39%)' }} />
+              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}>
+                <Zap className="w-5 h-5 text-white" />
               </div>
             </div>
           </motion.div>
@@ -481,9 +481,9 @@ export default function FeaturesSection() {
                 <div className="flex items-center gap-3 mb-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: 'hsl(355 48% 39% / 0.15)' }}
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   >
-                    <div style={{ color: 'hsl(355, 48%, 39%)' }}>{feature.icon}</div>
+                    <div className="text-white">{feature.icon}</div>
                   </div>
                   <h3 className="text-lg font-display text-white">{feature.title}</h3>
                 </div>

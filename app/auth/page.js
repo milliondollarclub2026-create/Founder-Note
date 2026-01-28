@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import { Eye, EyeOff, Check, X, Loader2, Lock, Mail, User, Sparkles, ArrowLeft, ArrowRight, Chrome } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -811,9 +812,18 @@ function AuthPageContent() {
       <BrandPanel />
 
       {/* Auth Form Panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 pt-20"
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 pt-20 relative"
         style={{ background: 'linear-gradient(180deg, hsl(34 42% 92%) 0%, hsl(34 35% 89%) 100%)' }}
       >
+        {/* Back to landing */}
+        <Link
+          href="/"
+          className="absolute top-7 right-7 z-20 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
+          aria-label="Back to home"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+
         <div className="w-full max-w-md">
           {/* Error display */}
           {error && view === 'main' && (

@@ -1,89 +1,20 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, Zap, Sparkles, MessageSquare, Code, Headphones, X } from 'lucide-react'
+import { Check, Mic, Sparkles, Brain, MessageCircle, Tag, Zap, Shield, MessageSquare, ArrowRight } from 'lucide-react'
 import Navigation from '@/components/landing/Navigation'
 import Footer from '@/components/landing/Footer'
 
 export default function PricingPage() {
-  const [billingPeriod, setBillingPeriod] = useState('monthly')
-
-  const plans = [
-    {
-      name: 'Starter',
-      price: { monthly: 'Free', yearly: 'Free' },
-      description: 'Perfect for trying out Founder Notes.',
-      features: [
-        { text: '30 minutes audio/month', included: true, icon: null },
-        { text: '10 notes', included: true, icon: null },
-        { text: '1 language', included: true, icon: null },
-        { text: '7-day history', included: true, icon: null },
-        { text: 'Basic AI categorization', included: true, icon: null },
-        { text: 'Email export only', included: true, icon: null },
-        { text: 'AI Ask', included: false, icon: null },
-        { text: 'Cross-Note AI', included: false, icon: null },
-        { text: 'API access', included: false, icon: null },
-      ],
-      cta: 'Start Free',
-      popular: false,
-      support: 'Community'
-    },
-    {
-      name: 'Pro',
-      price: { monthly: '$19', yearly: '$17' },
-      period: '/ month',
-      description: 'For founders who capture ideas daily.',
-      features: [
-        { text: '300 minutes audio/month', included: true, icon: null },
-        { text: 'Unlimited notes', included: true, icon: null },
-        { text: '31+ languages', included: true, icon: null },
-        { text: 'Unlimited history', included: true, icon: null },
-        { text: 'Advanced AI categorization', included: true, icon: null },
-        { text: 'All export formats', included: true, icon: null },
-        { text: 'AI Ask', included: true, icon: <Zap className="w-3.5 h-3.5" /> },
-        { text: 'Cross-Note AI', included: false, icon: null },
-        { text: 'API access', included: false, icon: null },
-      ],
-      cta: 'Start Trial',
-      popular: true,
-      support: 'Priority'
-    },
-    {
-      name: 'Plus',
-      price: { monthly: '$29', yearly: '$26' },
-      period: '/ month',
-      description: 'Unlimited power for power users.',
-      features: [
-        { text: 'Unlimited audio', included: true, icon: null },
-        { text: 'Unlimited notes', included: true, icon: null },
-        { text: '31+ languages', included: true, icon: null },
-        { text: 'Unlimited history', included: true, icon: null },
-        { text: 'Advanced AI categorization', included: true, icon: null },
-        { text: 'All export formats', included: true, icon: null },
-        { text: 'AI Ask', included: true, icon: <Zap className="w-3.5 h-3.5" /> },
-        { text: 'Cross-Note AI', included: true, icon: <Sparkles className="w-3.5 h-3.5" /> },
-        { text: 'API access', included: true, icon: <Code className="w-3.5 h-3.5" /> },
-      ],
-      cta: 'Start Trial',
-      popular: false,
-      support: 'Premium'
-    }
-  ]
-
-  const comparisonFeatures = [
-    { feature: 'Audio Input', starter: '30 min/mo', pro: '300 min/mo', plus: 'Unlimited' },
-    { feature: 'Notes', starter: '10', pro: 'Unlimited', plus: 'Unlimited' },
-    { feature: 'Languages', starter: '1', pro: '31+', plus: '31+' },
-    { feature: 'History', starter: '7 days', pro: 'Unlimited', plus: 'Unlimited' },
-    { feature: 'AI Categorization', starter: 'Basic', pro: 'Advanced', plus: 'Advanced' },
-    { feature: 'Export Formats', starter: 'Email only', pro: 'All formats', plus: 'All formats' },
-    { feature: 'AI Ask', starter: false, pro: true, plus: true },
-    { feature: 'Cross-Note AI', starter: false, pro: false, plus: true },
-    { feature: 'Future Integrations', starter: false, pro: false, plus: true },
-    { feature: 'API Access', starter: false, pro: false, plus: true },
-    { feature: 'Support', starter: 'Community', pro: 'Priority', plus: 'Premium' },
+  const betaFeatures = [
+    { icon: Mic, text: '10 notes and 100 minutes per month' },
+    { icon: Sparkles, text: 'AI transcription and summaries' },
+    { icon: Brain, text: 'Brain Dump synthesis' },
+    { icon: MessageCircle, text: 'Remy, your personal AI assistant' },
+    { icon: Tag, text: 'Tags, folders, and search' },
+    { icon: Zap, text: 'Action items and follow-ups' },
+    { icon: Shield, text: 'Early adopter pricing, locked in' },
   ]
 
   return (
@@ -106,190 +37,152 @@ export default function PricingPage() {
         <div className="relative max-w-7xl mx-auto">
           {/* Header */}
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-sm font-medium font-body"
+              style={{
+                backgroundColor: 'hsl(355 48% 39% / 0.08)',
+                color: 'hsl(355, 48%, 39%)',
+              }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'hsl(355, 48%, 39%)' }} />
+              Beta Program
+            </motion.div>
             <h1 className="text-4xl md:text-6xl font-display text-[#1a1a1a] mb-4">
-              Simple, transparent pricing
+              Shape the future with us
             </h1>
             <p className="text-lg md:text-xl text-[#666] font-body max-w-2xl mx-auto">
-              Start free, upgrade when you&apos;re ready. No hidden fees.
+              Join the beta. Get early access and a price that stays.
             </p>
           </motion.div>
 
-          {/* Billing Toggle */}
-          <motion.div
-            className="flex justify-center items-center gap-4 mb-12"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <span className={`text-sm font-medium font-body ${billingPeriod === 'monthly' ? 'text-[#1a1a1a]' : 'text-[#999]'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
-              className="relative w-14 h-7 rounded-full transition-colors duration-300"
-              style={{ backgroundColor: billingPeriod === 'yearly' ? 'hsl(355, 48%, 39%)' : '#e5e5e5' }}
+          {/* Single Beta Pricing Card */}
+          <div className="max-w-lg mx-auto mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="relative rounded-3xl overflow-hidden text-white shadow-2xl"
+              style={{
+                background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
+              }}
             >
-              <motion.div
-                animate={{ x: billingPeriod === 'yearly' ? 28 : 2 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
-              />
-            </button>
-            <span className={`text-sm font-medium font-body ${billingPeriod === 'yearly' ? 'text-[#1a1a1a]' : 'text-[#999]'}`}>
-              Yearly <span className="text-[hsl(355,48%,39%)] font-semibold">-10%</span>
-            </span>
-          </motion.div>
+              {/* Badge */}
+              <div className="absolute -top-0 left-1/2 -translate-x-1/2 translate-y-[-50%]">
+                <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
+                  Limited Beta
+                </div>
+              </div>
 
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-20">
-            {plans.map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.15 * index }}
-                className={`relative rounded-3xl p-8 ${
-                  plan.popular
-                    ? 'text-white shadow-2xl'
-                    : 'bg-white shadow-xl border border-[hsl(34_25%_82%)]'
-                }`}
-                style={plan.popular ? {
-                  background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
-                } : {}}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
-                      Most Popular
-                    </div>
-                  </div>
-                )}
-
-                <h3 className="text-2xl font-display mb-1">{plan.name}</h3>
-                <p className={`text-sm mb-6 font-body ${plan.popular ? 'text-white/70' : 'text-[#888]'}`}>
-                  {plan.description}
+              {/* Card Content */}
+              <div className="p-10 pt-12">
+                <h3 className="text-2xl font-display mb-1">Beta Plan</h3>
+                <p className="text-white/70 text-sm font-body mb-8">
+                  Everything you need to capture and organize your ideas.
                 </p>
 
-                <div className="mb-6">
-                  <span className="text-5xl font-display">{plan.price[billingPeriod]}</span>
-                  {plan.period && (
-                    <span className={`font-body ${plan.popular ? 'text-white/70' : 'text-[#888]'}`}>{plan.period}</span>
-                  )}
+                <div className="mb-8">
+                  <span className="text-6xl font-display">$14.99</span>
+                  <span className="text-white/70 font-body">/ month</span>
+                  <p className="text-white/50 text-sm font-body mt-2">
+                    Locked in. Price increases at launch.
+                  </p>
                 </div>
 
                 <Link
                   href="/auth"
-                  className={`w-full py-3.5 rounded-xl font-semibold mb-8 transition-all duration-300 flex items-center justify-center font-body ${
-                    plan.popular
-                      ? 'bg-white text-[hsl(355,48%,39%)] hover:bg-white/90 shadow-lg'
-                      : 'text-white hover:opacity-90 shadow-lg'
-                  }`}
-                  style={!plan.popular ? {
-                    backgroundColor: 'hsl(355, 48%, 39%)',
-                    boxShadow: '0 4px 20px hsl(355 48% 39% / 0.3)'
-                  } : {}}
+                  className="w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 font-body bg-white text-[hsl(355,48%,39%)] hover:bg-white/90 shadow-lg text-lg"
                 >
-                  {plan.cta}
+                  Join the beta
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                <ul className="space-y-3">
-                  {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          plan.popular ? 'bg-white/20' : 'bg-[hsl(355,48%,39%)]/10'
-                        }`}>
-                          {feature.icon || <Check className={`w-3 h-3 ${plan.popular ? 'text-white' : 'text-[hsl(355,48%,39%)]'}`} />}
-                          {feature.icon && <span className={plan.popular ? 'text-white' : 'text-[hsl(355,48%,39%)]'}>{feature.icon}</span>}
-                        </div>
-                      ) : (
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          plan.popular ? 'bg-white/10' : 'bg-gray-100'
-                        }`}>
-                          <X className={`w-3 h-3 ${plan.popular ? 'text-white/40' : 'text-gray-300'}`} />
-                        </div>
-                      )}
-                      <span className={`text-sm font-body ${
-                        feature.included
-                          ? (plan.popular ? 'text-white' : 'text-[#444]')
-                          : (plan.popular ? 'text-white/40' : 'text-gray-400')
-                      }`}>
-                        {feature.text}
-                      </span>
-                    </li>
+                {/* Features */}
+                <ul className="mt-10 space-y-4">
+                  {betaFeatures.map((feature, i) => (
+                    <motion.li
+                      key={i}
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + i * 0.06, duration: 0.4 }}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <feature.icon className="w-4 h-4 text-white/90" />
+                      </div>
+                      <span className="text-white/90 text-[15px] font-body">{feature.text}</span>
+                    </motion.li>
                   ))}
                 </ul>
 
-                <div className={`mt-6 pt-4 border-t ${plan.popular ? 'border-white/20' : 'border-[hsl(34_25%_82%)]'}`}>
-                  <div className="flex items-center gap-2">
-                    <Headphones className={`w-4 h-4 ${plan.popular ? 'text-white/70' : 'text-[#888]'}`} />
-                    <span className={`text-sm font-body ${plan.popular ? 'text-white/70' : 'text-[#888]'}`}>
-                      {plan.support} support
-                    </span>
-                  </div>
+                {/* Trust */}
+                <div className="mt-8 pt-6 border-t border-white/15 flex items-center justify-center gap-4 text-xs text-white/40 font-body">
+                  <span className="flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    Secure checkout
+                  </span>
+                  <span>·</span>
+                  <span>Cancel anytime</span>
+                  <span>·</span>
+                  <span>Powered by Lemon Squeezy</span>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+            </motion.div>
+
+            {/* Additional info */}
+            <p className="text-center text-xs text-[#999] font-body mt-6 leading-relaxed">
+              By subscribing, you agree to our{' '}
+              <Link href="/terms" className="underline underline-offset-2 hover:text-[hsl(355,48%,39%)] transition-colors">Terms of Service</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="underline underline-offset-2 hover:text-[hsl(355,48%,39%)] transition-colors">Privacy Policy</Link>.
+            </p>
           </div>
 
-          {/* Feature Comparison Table */}
+          {/* What's Included Section */}
           <motion.div
-            className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[hsl(34_25%_82%)]"
+            className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[hsl(34_25%_82%)] max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.6 }}
           >
             <div className="p-8 border-b border-[hsl(34_25%_82%)]">
-              <h2 className="text-2xl font-display text-[#1a1a1a]">Compare all features</h2>
-              <p className="text-[#888] font-body mt-1">Find the perfect plan for your needs</p>
+              <h2 className="text-2xl font-display text-[#1a1a1a]">{"What's included"}</h2>
+              <p className="text-[#888] font-body mt-1">Everything in the beta plan</p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[hsl(34_25%_82%)]">
-                    <th className="text-left p-6 font-display text-[#666] text-lg">Feature</th>
-                    <th className="p-6 font-display text-lg text-[#1a1a1a]">Starter</th>
-                    <th className="p-6 font-display text-lg" style={{ backgroundColor: 'hsl(355 48% 39% / 0.1)' }}>
-                      <span className="text-[hsl(355,48%,39%)]">Pro</span>
-                    </th>
-                    <th className="p-6 font-display text-lg text-[#1a1a1a]">Plus</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparisonFeatures.map((row, i) => (
-                    <tr key={i} className="border-b border-[hsl(34_30%_94%)] last:border-0">
-                      <td className="p-6 text-[#444] font-body text-base">{row.feature}</td>
-                      <td className="p-6 text-center font-body text-base">
-                        {typeof row.starter === 'boolean'
-                          ? row.starter
-                            ? <Check className="w-5 h-5 mx-auto text-[hsl(355,48%,39%)]" />
-                            : <span className="text-gray-300">—</span>
-                          : <span className="text-[#666]">{row.starter}</span>}
-                      </td>
-                      <td className="p-6 text-center font-body text-base" style={{ backgroundColor: 'hsl(355 48% 39% / 0.05)' }}>
-                        {typeof row.pro === 'boolean'
-                          ? row.pro
-                            ? <Check className="w-5 h-5 mx-auto text-[hsl(355,48%,39%)]" />
-                            : <span className="text-gray-300">—</span>
-                          : <span className="text-[#666] font-medium">{row.pro}</span>}
-                      </td>
-                      <td className="p-6 text-center font-body text-base">
-                        {typeof row.plus === 'boolean'
-                          ? row.plus
-                            ? <Check className="w-5 h-5 mx-auto text-[hsl(355,48%,39%)]" />
-                            : <span className="text-gray-300">—</span>
-                          : <span className="text-[#666]">{row.plus}</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="p-8">
+              <div className="grid md:grid-cols-2 gap-x-12 gap-y-5">
+                {[
+                  { label: 'Notes per month', value: '10' },
+                  { label: 'Audio minutes', value: '100 min/mo' },
+                  { label: 'Languages', value: '31+' },
+                  { label: 'AI Transcription', value: true },
+                  { label: 'AI Summaries', value: true },
+                  { label: 'Brain Dump', value: true },
+                  { label: 'Remy AI Assistant', value: true },
+                  { label: 'Tags & Folders', value: true },
+                  { label: 'Search', value: true },
+                  { label: 'Action Items', value: true },
+                  { label: 'Export Formats', value: 'All' },
+                  { label: 'Support', value: 'Priority' },
+                ].map((row, i) => (
+                  <div key={i} className="flex items-center justify-between py-2 border-b border-[hsl(34_30%_94%)] last:border-0">
+                    <span className="text-[#444] font-body text-sm">{row.label}</span>
+                    {typeof row.value === 'boolean' ? (
+                      <Check className="w-5 h-5 text-[hsl(355,48%,39%)]" />
+                    ) : (
+                      <span className="text-[#1a1a1a] font-medium font-body text-sm">{row.value}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
 
