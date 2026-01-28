@@ -192,7 +192,7 @@ export const CompletedView = ({
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm leading-snug ${
                             activeTab === 'tasks'
-                              ? 'text-muted-foreground line-through decoration-border'
+                              ? 'text-muted-foreground line-through decoration-primary/40 decoration-2'
                               : 'text-foreground/80'
                           }`}>
                             {activeTab === 'tasks' ? item.title : (item.normalized_intent || item.raw_text)}
@@ -235,7 +235,7 @@ export const CompletedView = ({
                                 onUncompleteIntent(item.id)
                               }
                             }}
-                            className="flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-primary transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+                            className="flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-foreground transition-colors sm:opacity-0 sm:group-hover:opacity-100"
                           >
                             <RotateCcw className="w-3 h-3" />
                             <span className="hidden sm:inline">Restore</span>

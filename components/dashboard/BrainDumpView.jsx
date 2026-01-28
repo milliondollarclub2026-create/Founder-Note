@@ -95,53 +95,115 @@ const ContentSection = ({ label, Icon, items, onNoteClick, animIndex }) => {
   )
 }
 
-// Shimmer loading skeleton
-const LoadingSkeleton = () => (
-  <div className="pt-2">
-    <p className="text-sm text-muted-foreground/50 animate-breathe mb-10">
-      Reflecting on your thoughts...
-    </p>
+// Interactive loading — orbital convergence animation
+const SynthesisLoader = () => {
+  const [phase, setPhase] = useState(0)
+  const phases = [
+    'Gathering your thoughts...',
+    'Finding patterns...',
+    'Connecting ideas...',
+    'Synthesizing...'
+  ]
 
-    {/* Simulated theme pills */}
-    <div className="flex gap-2 mb-12">
-      <div className="h-8 w-24 rounded-full bg-secondary/50 animate-shimmer" />
-      <div className="h-8 w-32 rounded-full bg-secondary/40 animate-shimmer" style={{ animationDelay: '0.2s' }} />
-      <div className="h-8 w-20 rounded-full bg-secondary/35 animate-shimmer" style={{ animationDelay: '0.4s' }} />
-    </div>
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPhase(p => (p + 1) % phases.length)
+    }, 3200)
+    return () => clearInterval(interval)
+  }, [])
 
-    {/* Simulated sections */}
-    {[0, 1, 2].map(section => (
-      <div key={section} className="mb-10" style={{ animationDelay: `${section * 0.15}s` }}>
-        <div className="h-2.5 w-28 rounded-full bg-secondary/40 animate-shimmer mb-6" />
-        <div className="space-y-4 pl-4">
-          <div className="flex gap-3">
-            <div className="w-0.5 rounded-full bg-secondary/25" style={{ minHeight: '2.5rem' }} />
-            <div className="space-y-2 flex-1">
-              <div className="h-3.5 w-5/6 rounded-full bg-secondary/50 animate-shimmer" style={{ animationDelay: `${section * 0.15 + 0.1}s` }} />
-              <div className="h-2 w-24 rounded-full bg-secondary/25 animate-shimmer" style={{ animationDelay: `${section * 0.15 + 0.2}s` }} />
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="w-0.5 rounded-full bg-secondary/20" style={{ minHeight: '2.5rem' }} />
-            <div className="space-y-2 flex-1">
-              <div className="h-3.5 w-2/3 rounded-full bg-secondary/45 animate-shimmer" style={{ animationDelay: `${section * 0.15 + 0.3}s` }} />
-              <div className="h-2 w-20 rounded-full bg-secondary/25 animate-shimmer" style={{ animationDelay: `${section * 0.15 + 0.4}s` }} />
-            </div>
-          </div>
-          {section === 0 && (
-            <div className="flex gap-3">
-              <div className="w-0.5 rounded-full bg-secondary/20" style={{ minHeight: '2.5rem' }} />
-              <div className="space-y-2 flex-1">
-                <div className="h-3.5 w-3/4 rounded-full bg-secondary/40 animate-shimmer" style={{ animationDelay: '0.6s' }} />
-                <div className="h-2 w-28 rounded-full bg-secondary/20 animate-shimmer" style={{ animationDelay: '0.7s' }} />
-              </div>
-            </div>
-          )}
+  // 8 orbital dots at different angles and radii
+  const dots = Array.from({ length: 8 }, (_, i) => ({
+    angle: (i * 45),
+    radius: 36 + (i % 3) * 10,
+    size: i % 2 === 0 ? 6 : 4,
+    duration: 4 + (i * 0.4),
+    delay: i * -0.5,
+    opacity: 0.3 + (i % 3) * 0.2
+  }))
+
+  return (
+    <div className="flex flex-col items-center justify-center h-80 animate-fade-in select-none">
+      {/* Orbital animation container */}
+      <div className="relative w-40 h-40 mb-10">
+        {/* Ambient pulse rings */}
+        <div
+          className="absolute inset-0 rounded-full border border-primary/[0.08]"
+          style={{ animation: 'bd-pulse-ring 4s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute -inset-4 rounded-full border border-primary/[0.05]"
+          style={{ animation: 'bd-pulse-ring 4s ease-in-out infinite 1.3s' }}
+        />
+        <div
+          className="absolute -inset-8 rounded-full border border-primary/[0.03]"
+          style={{ animation: 'bd-pulse-ring 4s ease-in-out infinite 2.6s' }}
+        />
+
+        {/* Center glow dot */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-3 h-3 rounded-full bg-primary/20 animate-breathe" />
         </div>
+
+        {/* Orbiting thought dots */}
+        {dots.map((dot, i) => (
+          <div
+            key={i}
+            className="absolute top-1/2 left-1/2"
+            style={{
+              '--bd-radius': `${dot.radius}px`,
+              animation: `bd-orbit ${dot.duration}s linear infinite`,
+              animationDelay: `${dot.delay}s`,
+              marginTop: `-${dot.size / 2}px`,
+              marginLeft: `-${dot.size / 2}px`,
+            }}
+          >
+            <div
+              className="rounded-full bg-primary"
+              style={{
+                width: `${dot.size}px`,
+                height: `${dot.size}px`,
+                opacity: dot.opacity,
+              }}
+            />
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
-)
+
+      {/* Phase text */}
+      <p
+        key={phase}
+        className="text-sm font-medium text-foreground/50 tracking-[-0.01em] animate-fade-in"
+      >
+        {phases[phase]}
+      </p>
+
+      {/* Decorative line below text */}
+      <div className="mt-4 w-20 h-px overflow-hidden rounded-full">
+        <div
+          className="h-full bg-primary/20 rounded-full"
+          style={{ animation: 'bd-line-grow 3s ease-in-out infinite' }}
+        />
+      </div>
+
+      {/* Phase dots */}
+      <div className="flex items-center gap-1.5 mt-5">
+        {phases.map((_, i) => (
+          <div
+            key={i}
+            className={`rounded-full transition-all duration-500 ${
+              i === phase
+                ? 'w-5 h-1.5 bg-primary/30'
+                : i < phase
+                ? 'w-1.5 h-1.5 bg-primary/20'
+                : 'w-1.5 h-1.5 bg-border/60'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // Brain Dump View — Reflective lens over notes
 export const BrainDumpView = ({
@@ -259,23 +321,11 @@ export const BrainDumpView = ({
 
   const scopeLabel = getScopeLabel()
 
-  // Loading state — show skeleton (but not if we're just refreshing with existing data)
+  // Loading state — centered synthesis animation (but not if we're just refreshing with existing data)
   if (isLoading && !synthesis) {
     return (
-      <div className="animate-fade-in max-w-2xl">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground tracking-[-0.02em]">
-              What&apos;s on your mind
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1.5">
-              Analyzing {noteCount} note{noteCount !== 1 ? 's' : ''}
-              {scopeLabel ? ` in ${scopeLabel}` : ''}
-            </p>
-          </div>
-        </div>
-        <div className="w-16 h-[2px] bg-primary/20 rounded-full mb-8" />
-        <LoadingSkeleton />
+      <div className="animate-fade-in max-w-2xl mx-auto">
+        <SynthesisLoader />
       </div>
     )
   }

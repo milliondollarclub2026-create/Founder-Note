@@ -354,6 +354,38 @@
     animation: breathe 3s ease-in-out infinite;
   }
 
+  /* Brain Dump synthesis loading — orbital convergence */
+  @keyframes bd-orbit {
+    0% { transform: rotate(0deg) translateX(var(--bd-radius)) rotate(0deg); opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { transform: rotate(360deg) translateX(var(--bd-radius)) rotate(-360deg); opacity: 0.4; }
+  }
+
+  @keyframes bd-converge {
+    0%, 70% { transform: rotate(var(--bd-start)) translateX(var(--bd-radius)) rotate(calc(-1 * var(--bd-start))); }
+    100% { transform: rotate(var(--bd-start)) translateX(0px) rotate(calc(-1 * var(--bd-start))); }
+  }
+
+  @keyframes bd-pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.15; }
+    50% { transform: scale(1.1); opacity: 0.06; }
+    100% { transform: scale(0.8); opacity: 0.15; }
+  }
+
+  @keyframes bd-text-cycle {
+    0%, 20% { opacity: 1; transform: translateY(0); }
+    25%, 45% { opacity: 0; transform: translateY(-6px); }
+    50%, 70% { opacity: 1; transform: translateY(0); }
+    75%, 95% { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bd-line-grow {
+    0% { width: 0; }
+    50% { width: 100%; }
+    100% { width: 0; }
+  }
+
   /* Hover lift effect */
   .hover-lift {
     @apply transition-all duration-200;

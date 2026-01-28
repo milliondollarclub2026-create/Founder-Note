@@ -300,20 +300,26 @@ export default function Dashboard() {
   }, [todos, intents])
 
   // Build unique source map for inline numbered references in Next Steps
+  // Numbered by note creation order (oldest = 1, next = 2, etc.)
   const nextStepsSources = useMemo(() => {
     const sourceMap = new Map()
-    let idx = 0
+    // Collect all unique source notes
+    const uniqueSources = []
     nextStepsItems.forEach(item => {
-      if (item.sourceNoteId && !sourceMap.has(item.sourceNoteId)) {
+      if (item.sourceNoteId && !uniqueSources.find(s => s.id === item.sourceNoteId)) {
         const note = notes.find(n => n.id === item.sourceNoteId)
-        sourceMap.set(item.sourceNoteId, {
-          index: ++idx,
+        uniqueSources.push({
           id: item.sourceNoteId,
           title: item.sourceTitle,
           summary: note?.summary || '',
           date: note?.created_at || ''
         })
       }
+    })
+    // Sort by creation date ascending (oldest first = #1)
+    uniqueSources.sort((a, b) => new Date(a.date) - new Date(b.date))
+    uniqueSources.forEach((src, idx) => {
+      sourceMap.set(src.id, { ...src, index: idx + 1 })
     })
     return sourceMap
   }, [nextStepsItems, notes])
@@ -1397,7 +1403,7 @@ export default function Dashboard() {
                      authUser?.email?.split('@')[0] ||
                      'User'}
                   </p>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/70 font-medium">
                       Beta
                     </span>
@@ -1591,7 +1597,7 @@ export default function Dashboard() {
               </button>
 
               {nextStepsExpanded && (
-                <div className="space-y-1 bg-card/50 border border-border/60 rounded-xl p-3 animate-fade-in max-h-[230px] overflow-y-auto">
+                <div className="space-y-1 bg-card/50 border border-border/60 rounded-xl p-3 animate-fade-in">
                   {nextStepsItems.map((item) => (
                     <div
                       key={`${item.type}-${item.id}`}

@@ -419,6 +419,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -538,9 +539,28 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
           <PasswordStrength password={password} />
         </div>
 
+        <label className="flex items-start gap-3 cursor-pointer mt-2">
+          <input
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-border/50 accent-primary cursor-pointer"
+          />
+          <span className="text-xs text-muted-foreground leading-relaxed">
+            I agree to the{' '}
+            <Link href="/terms" target="_blank" className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors">
+              Terms & Conditions
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" target="_blank" className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors">
+              Privacy Policy
+            </Link>
+          </span>
+        </label>
+
         <Button
           type="submit"
-          disabled={isLoading || !passwordValidation.isValid}
+          disabled={isLoading || !passwordValidation.isValid || !agreedToTerms}
           className="w-full h-12 rounded-xl font-medium text-base mt-2"
         >
           {isLoading ? (

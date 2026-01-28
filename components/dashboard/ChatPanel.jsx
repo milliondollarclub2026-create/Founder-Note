@@ -272,7 +272,9 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
                   <span className="whitespace-pre-wrap">{msg.role === 'assistant' ? renderChatText(msg.content) : msg.content}</span>
                   {msg.sources?.length > 0 && (
                     <span className="inline-flex items-center gap-1 ml-1.5 align-baseline translate-y-[-1px]">
-                      {msg.sources.map((s, si) => (
+                      {[...msg.sources]
+                        .sort((a, b) => new Date(a.date) - new Date(b.date))
+                        .map((s, si) => (
                         <button
                           key={si}
                           onClick={(e) => { e.stopPropagation(); onSelectNote?.(s) }}
