@@ -180,21 +180,44 @@ export default function OnboardingPage() {
     try {
       const supabase = createClient()
 
-      // Upsert profile — handles both "row exists" and "row missing" cases
-      const { error: upsertError } = await supabase
+      // Check if profile row already exists
+      const { data: existing } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: user.user_metadata?.full_name || '',
-          email: user.email,
-          onboarding_completed: true,
-          usage_preferences: usageSelections,
-          ai_style_preferences: aiStyleSelections,
-        }, { onConflict: 'user_id' })
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      if (upsertError) {
-        console.error('Failed to save onboarding:', upsertError)
-        setError('Failed to save your preferences. Please try again.')
+      let saveError
+
+      if (existing) {
+        // Profile exists — update it
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({
+            onboarding_completed: true,
+            usage_preferences: usageSelections,
+            ai_style_preferences: aiStyleSelections,
+          })
+          .eq('user_id', user.id)
+        saveError = error
+      } else {
+        // No profile yet — insert one
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: user.id,
+            full_name: user.user_metadata?.full_name || '',
+            email: user.email,
+            onboarding_completed: true,
+            usage_preferences: usageSelections,
+            ai_style_preferences: aiStyleSelections,
+          })
+        saveError = error
+      }
+
+      if (saveError) {
+        console.error('Failed to save onboarding:', saveError)
+        setError(`Failed to save your preferences. Please try again. (${saveError.message})`)
         setIsSaving(false)
         return
       }
@@ -208,7 +231,7 @@ export default function OnboardingPage() {
 
       if (readError || !profile?.onboarding_completed) {
         console.error('Onboarding flag not persisted after write:', readError)
-        setError('Something went wrong saving your profile. Please try again.')
+        setError(`Something went wrong saving your profile. Please try again. (${readError?.message || 'Write not persisted'})`)
         setIsSaving(false)
         return
       }
@@ -217,7 +240,7 @@ export default function OnboardingPage() {
       router.push('/subscribe')
     } catch (err) {
       console.error('Failed to save onboarding:', err)
-      setError('Something went wrong. Please try again.')
+      setError(`Something went wrong. Please try again. (${err.message})`)
       setIsSaving(false)
     }
   }
