@@ -464,10 +464,11 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
         return
       }
 
-      // Supabase returns a fake user with empty identities when the email
-      // is already registered (to prevent email enumeration). Detect this
-      // so we don't show "check your inbox" when no email was actually sent.
-      if (data?.user?.identities?.length === 0) {
+      // Supabase returns a fake user with empty identities and no
+      // confirmation_sent_at when the email is already registered
+      // (to prevent email enumeration). A genuine new signup will
+      // have identities or a confirmation_sent_at timestamp.
+      if (data?.user?.identities?.length === 0 && !data?.user?.confirmation_sent_at) {
         setError('An account with this email already exists. Try signing in.')
         return
       }
