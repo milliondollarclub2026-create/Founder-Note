@@ -50,7 +50,7 @@ export async function POST(request) {
       const { error: updateError } = await supabase
         .from('user_profiles')
         .update({
-          subscription_status: subscriptionData.attributes?.status === 'active' ? 'active' : subscriptionData.attributes?.status,
+          subscription_status: (subscriptionData.attributes?.status === 'active' || subscriptionData.attributes?.status === 'on_trial') ? 'active' : subscriptionData.attributes?.status,
           subscription_id: subscriptionData.id,
           lemon_squeezy_customer_id: subscriptionData.attributes?.customer_id?.toString(),
           subscription_created_at: subscriptionData.attributes?.created_at,
