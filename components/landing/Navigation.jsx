@@ -59,7 +59,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <img src="/logo.png" alt="Founder Note" className="w-9 h-9 rounded-xl" />
+          <img src="/logo.png" alt="Founder Note" width={36} height={36} className="w-9 h-9 rounded-xl" />
           <span className="text-lg font-semibold tracking-tight text-gray-900 font-body">
             Founder Note
           </span>

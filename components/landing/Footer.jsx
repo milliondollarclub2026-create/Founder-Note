@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2">
             <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="Founder Note" className="w-9 h-9 rounded-xl" />
+              <img src="/logo.png" alt="Founder Note" width={36} height={36} className="w-9 h-9 rounded-xl" />
               <span className="text-lg font-semibold tracking-tight text-white font-body">
                 Founder Note
               </span>

@@ -480,8 +480,8 @@ export default function FeaturesSection() {
               <div className="p-6 pt-2">
                 <div className="flex items-center gap-3 mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-shadow duration-300 group-hover:shadow-[0_0_20px_hsl(355_48%_39%/0.5)]"
+                    style={{ backgroundColor: 'hsl(355, 48%, 39%)' }}
                   >
                     <div className="text-white">{feature.icon}</div>
                   </div>

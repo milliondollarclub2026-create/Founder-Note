@@ -64,18 +64,18 @@ export default function PricingPage() {
           </motion.div>
 
           {/* Single Beta Pricing Card */}
-          <div className="max-w-lg mx-auto mb-20">
+          <div className="max-w-lg mx-auto mb-20 pt-4">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="relative rounded-3xl overflow-hidden text-white shadow-2xl"
+              className="relative rounded-3xl text-white shadow-2xl"
               style={{
                 background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
               }}
             >
               {/* Badge */}
-              <div className="absolute -top-0 left-1/2 -translate-x-1/2 translate-y-[-50%]">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
                   Limited Beta
                 </div>

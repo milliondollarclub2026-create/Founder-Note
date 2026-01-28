@@ -268,7 +268,7 @@ export default function OnboardingPage() {
     >
       {/* Top-left logo */}
       <div className="absolute top-6 left-6 z-20 flex items-center gap-2.5">
-        <img src="/logo.png" alt="Founder Note" className="w-10 h-10 rounded-xl shadow-sm" />
+        <img src="/logo.png" alt="Founder Note" width={40} height={40} className="w-10 h-10 rounded-xl shadow-sm" />
         <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
       </div>
 
