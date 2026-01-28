@@ -313,23 +313,15 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
         return
       }
       
-      // Check if profile exists, create if not
-      const { data: profile, error: profileError } = await supabase
+      // Check profile status — trigger auto-creates profiles on signup,
+      // but use maybeSingle() in case it hasn't propagated yet
+      const { data: profile } = await supabase
         .from('user_profiles')
         .select('onboarding_completed')
         .eq('user_id', data.user.id)
-        .single()
-      
-      if (profileError && profileError.code === 'PGRST116') {
-        // Profile doesn't exist, create it
-        await supabase.from('user_profiles').insert({
-          user_id: data.user.id,
-          full_name: data.user.user_metadata?.full_name || '',
-          email: data.user.email,
-          onboarding_completed: false,
-        })
-        router.push('/onboarding')
-      } else if (!profile?.onboarding_completed) {
+        .maybeSingle()
+
+      if (!profile || !profile.onboarding_completed) {
         router.push('/onboarding')
       } else {
         router.push('/dashboard')
@@ -462,7 +454,7 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
-      
+
       if (authError) {
         if (authError.message.includes('already registered')) {
           setError('An account with this email already exists. Try signing in.')
@@ -471,7 +463,15 @@ const EmailSignupForm = ({ onBack, onLoginSwitch, onSuccess, animClass = 'animat
         }
         return
       }
-      
+
+      // Supabase returns a fake user with empty identities when the email
+      // is already registered (to prevent email enumeration). Detect this
+      // so we don't show "check your inbox" when no email was actually sent.
+      if (data?.user?.identities?.length === 0) {
+        setError('An account with this email already exists. Try signing in.')
+        return
+      }
+
       onSuccess(email)
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')

@@ -130,14 +130,19 @@ export default function OnboardingPage() {
       setUserName(name.split(' ')[0]) // First name only
 
       // Check if onboarding is already completed
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('onboarding_completed, subscription_status')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
+
+      if (profileError) {
+        console.error('Failed to load profile:', profileError)
+        // Don't block onboarding — the profile might not exist yet
+        // (trigger may still be creating it). Allow the user to proceed.
+      }
 
       if (profile?.onboarding_completed) {
-        // If onboarded, check subscription status
         if (profile?.subscription_status === 'active') {
           router.push('/dashboard')
         } else {

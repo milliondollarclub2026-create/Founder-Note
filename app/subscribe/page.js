@@ -39,7 +39,7 @@ export default function SubscribePage() {
         .from('user_profiles')
         .select('subscription_status, onboarding_completed')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profile?.subscription_status === 'active') {
         // Already subscribed, go to dashboard
@@ -73,7 +73,7 @@ export default function SubscribePage() {
           .from('user_profiles')
           .select('subscription_status')
           .eq('user_id', user.id)
-          .single()
+          .maybeSingle()
 
         if (profile?.subscription_status === 'active') {
           clearInterval(pollInterval)

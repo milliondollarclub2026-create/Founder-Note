@@ -55,6 +55,18 @@ export async function middleware(request) {
     return supabaseResponse
   }
 
+  // Protect authenticated routes — redirect to /auth if not logged in
+  const protectedRoutes = ['/dashboard', '/onboarding', '/subscribe']
+  const isProtectedRoute = protectedRoutes.some(route =>
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  if (isProtectedRoute && !user) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/auth'
+    return NextResponse.redirect(redirectUrl)
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

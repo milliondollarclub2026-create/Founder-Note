@@ -53,38 +53,19 @@ export async function GET(request) {
 
     if (data.session) {
       const user = data.session.user
-      
-      // Check if profile exists
-      const { data: existingProfile, error: profileError } = await supabase
+
+      // Profile is auto-created by database trigger on signup.
+      // Just check its status to decide where to route.
+      const { data: profile } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select('onboarding_completed, subscription_status')
         .eq('user_id', user.id)
-        .single()
-      
-      if (profileError && profileError.code === 'PGRST116') {
-        // Profile doesn't exist, create it
-        const { error: insertError } = await supabase.from('user_profiles').insert({
-          user_id: user.id,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '',
-          email: user.email,
-          onboarding_completed: false,
-          subscription_status: 'inactive',
-        })
+        .maybeSingle()
 
-        if (insertError) {
-          console.error('Failed to create profile during auth callback:', insertError)
-        }
-
+      if (!profile || !profile.onboarding_completed) {
         return NextResponse.redirect(`${origin}/onboarding`)
-      } else if (existingProfile) {
-        // Profile exists, check status
-        if (!existingProfile.onboarding_completed) {
-          return NextResponse.redirect(`${origin}/onboarding`)
-        } else if (existingProfile.subscription_status !== 'active') {
-          return NextResponse.redirect(`${origin}/subscribe`)
-        } else {
-          return NextResponse.redirect(`${origin}/dashboard`)
-        }
+      } else if (profile.subscription_status !== 'active') {
+        return NextResponse.redirect(`${origin}/subscribe`)
       } else {
         return NextResponse.redirect(`${origin}/dashboard`)
       }
