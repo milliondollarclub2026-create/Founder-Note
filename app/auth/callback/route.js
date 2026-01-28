@@ -43,6 +43,11 @@ export async function GET(request) {
     
     if (exchangeError) {
       console.error('Auth callback error:', exchangeError)
+      // PKCE errors happen when email is opened in a different browser/context
+      // Redirect with a friendly message instead of the raw error
+      if (exchangeError.message?.includes('code verifier')) {
+        return NextResponse.redirect(`${origin}/auth?verified=true`)
+      }
       return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(exchangeError.message)}`)
     }
 

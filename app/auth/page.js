@@ -756,6 +756,7 @@ function AuthPageContent() {
   const [resetEmail, setResetEmail] = useState('')
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   // Navigate with direction tracking
   const navigateTo = (newView, direction = 'forward') => {
@@ -765,11 +766,17 @@ function AuthPageContent() {
 
   const viewAnimClass = viewDirection === 'back' ? 'animate-slide-in-left' : 'animate-slide-in-right'
   
-  // Check for error params from redirects
+  // Check for error/success params from redirects
   useEffect(() => {
     const errorParam = searchParams.get('error')
+    const verifiedParam = searchParams.get('verified')
     if (errorParam) {
       setError(decodeURIComponent(errorParam))
+    }
+    if (verifiedParam === 'true') {
+      setSuccessMessage('Email verified successfully. Please sign in to continue.')
+      // Switch to the email login view
+      setView('email-login')
     }
   }, [searchParams])
   
@@ -845,6 +852,13 @@ function AuthPageContent() {
         </Link>
 
         <div className="w-full max-w-md">
+          {/* Success message (e.g. email verified) */}
+          {successMessage && (
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm text-foreground mb-6 animate-fade-in">
+              {successMessage}
+            </div>
+          )}
+
           {/* Error display */}
           {error && view === 'main' && (
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-6">
