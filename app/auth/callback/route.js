@@ -63,17 +63,18 @@ export async function GET(request) {
       
       if (profileError && profileError.code === 'PGRST116') {
         // Profile doesn't exist, create it
-        const isGoogleUser = user.app_metadata?.provider === 'google'
-        
-        await supabase.from('user_profiles').insert({
+        const { error: insertError } = await supabase.from('user_profiles').insert({
           user_id: user.id,
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '',
           email: user.email,
           onboarding_completed: false,
           subscription_status: 'inactive',
-          auth_provider: isGoogleUser ? 'google' : 'email',
         })
-        
+
+        if (insertError) {
+          console.error('Failed to create profile during auth callback:', insertError)
+        }
+
         return NextResponse.redirect(`${origin}/onboarding`)
       } else if (existingProfile) {
         // Profile exists, check status

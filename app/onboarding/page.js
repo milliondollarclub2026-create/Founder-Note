@@ -105,6 +105,7 @@ export default function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [user, setUser] = useState(null)
   const [userName, setUserName] = useState('')
+  const [error, setError] = useState('')
   const [slideDir, setSlideDir] = useState(null) // null = initial, 'right' = forward, 'left' = back
 
   // Onboarding selections
@@ -174,12 +175,13 @@ export default function OnboardingPage() {
     if (!user) return
 
     setIsSaving(true)
+    setError('')
 
     try {
       const supabase = createClient()
 
       // Upsert profile — handles both "row exists" and "row missing" cases
-      const { error } = await supabase
+      const { error: upsertError } = await supabase
         .from('user_profiles')
         .upsert({
           user_id: user.id,
@@ -190,29 +192,32 @@ export default function OnboardingPage() {
           ai_style_preferences: aiStyleSelections,
         }, { onConflict: 'user_id' })
 
-      if (error) {
-        console.error('Failed to save onboarding:', error)
+      if (upsertError) {
+        console.error('Failed to save onboarding:', upsertError)
+        setError('Failed to save your preferences. Please try again.')
         setIsSaving(false)
         return
       }
 
       // Verify the write landed before navigating
-      const { data: profile } = await supabase
+      const { data: profile, error: readError } = await supabase
         .from('user_profiles')
         .select('onboarding_completed')
         .eq('user_id', user.id)
         .single()
 
-      if (!profile?.onboarding_completed) {
-        console.error('Onboarding flag not persisted after write')
+      if (readError || !profile?.onboarding_completed) {
+        console.error('Onboarding flag not persisted after write:', readError)
+        setError('Something went wrong saving your profile. Please try again.')
         setIsSaving(false)
         return
       }
 
       // Navigate to paywall (subscription required before dashboard access)
       router.push('/subscribe')
-    } catch (error) {
-      console.error('Failed to save onboarding:', error)
+    } catch (err) {
+      console.error('Failed to save onboarding:', err)
+      setError('Something went wrong. Please try again.')
       setIsSaving(false)
     }
   }
@@ -411,6 +416,12 @@ export default function OnboardingPage() {
                     </div>
                   ))}
                 </div>
+
+                {error && (
+                  <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-fade-in">
+                    {error}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <button
