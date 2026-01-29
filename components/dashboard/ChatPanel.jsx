@@ -335,46 +335,48 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
             {/* Pills Grid - Auto-fit magic */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(contextScope.type === 'note' ? [
-                { label: 'Summarize', prompt: 'Summarize this note for me' },
-                { label: 'Takeaways', prompt: 'What are the key takeaways from this note?' },
-                { label: 'Actions', prompt: 'List the action items from this note' },
-                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Summarize', prompt: 'Summarize this note for me', icon: '✦' },
+                { label: 'Key Points', prompt: 'What are the key takeaways from this note?', icon: '◈' },
+                { label: 'To-dos', prompt: 'List the action items from this note', icon: '◇' },
+                { label: 'Remy, remember', prompt: 'Hey Remy, remember this: ', icon: '♦', accent: true },
               ] : contextScope.type === 'folder' ? [
-                { label: 'Summarize', prompt: `Summarize the notes in ${contextScope.folder}` },
-                { label: 'Themes', prompt: 'What are the common themes across these notes?' },
-                { label: 'Questions', prompt: 'What open questions are there across these notes?' },
-                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Summarize', prompt: `Summarize the notes in ${contextScope.folder}`, icon: '✦' },
+                { label: 'Themes', prompt: 'What are the common themes across these notes?', icon: '◈' },
+                { label: 'Questions', prompt: 'What open questions are there across these notes?', icon: '◇' },
+                { label: 'Remy, remember', prompt: 'Hey Remy, remember this: ', icon: '♦', accent: true },
               ] : contextScope.type === 'tag' ? [
-                { label: 'Insights', prompt: `What have I said about ${contextScope.tag}?` },
-                { label: 'Patterns', prompt: 'What patterns do you see in these notes?' },
-                { label: 'Actions', prompt: 'List all action items from these notes' },
-                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Insights', prompt: `What have I said about ${contextScope.tag}?`, icon: '✦' },
+                { label: 'Patterns', prompt: 'What patterns do you see in these notes?', icon: '◈' },
+                { label: 'To-dos', prompt: 'List all action items from these notes', icon: '◇' },
+                { label: 'Remy, remember', prompt: 'Hey Remy, remember this: ', icon: '♦', accent: true },
               ] : [
-                { label: 'Highlights', prompt: 'What are the highlights from my recent notes?' },
-                { label: 'Actions', prompt: 'What action items are still open?' },
-                { label: 'Themes', prompt: 'What are the key themes across my notes?' },
-                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Highlights', prompt: 'What are the highlights from my recent notes?', icon: '✦' },
+                { label: 'Open items', prompt: 'What action items are still open?', icon: '◈' },
+                { label: 'Themes', prompt: 'What are the key themes across my notes?', icon: '◇' },
+                { label: 'Remy, remember', prompt: 'Hey Remy, remember this: ', icon: '♦', accent: true },
               ]).map((pill, i) => (
                 <button
                   key={i}
                   onClick={() => setInput(pill.prompt)}
-                  className="velvet-pill group relative px-3 py-2.5 rounded-xl text-[12px] font-medium tracking-wide
-                    bg-[hsl(34_40%_98%)] text-[hsl(355_30%_35%)]
-                    border border-[hsl(34_25%_85%)]
-                    shadow-[inset_0_1px_0_hsl(0_0%_100%/0.7),0_1px_2px_hsl(355_30%_20%/0.04)]
-                    hover:bg-white hover:border-[hsl(355_48%_39%/0.25)] hover:text-[hsl(355_48%_39%)]
-                    hover:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.9),0_4px_12px_hsl(355_48%_39%/0.1),0_0_0_1px_hsl(355_48%_39%/0.05)]
+                  className={`velvet-pill group relative px-3 py-2.5 rounded-xl text-[11px] font-medium tracking-wide
+                    ${pill.accent
+                      ? 'bg-gradient-to-br from-[hsl(355_48%_39%)] to-[hsl(355_50%_32%)] text-white/95 border border-[hsl(355_48%_35%)] shadow-[inset_0_1px_0_hsl(355_48%_50%/0.3),0_2px_8px_hsl(355_48%_30%/0.2)] hover:from-[hsl(355_48%_42%)] hover:to-[hsl(355_50%_35%)] hover:shadow-[inset_0_1px_0_hsl(355_48%_55%/0.3),0_4px_16px_hsl(355_48%_30%/0.25)]'
+                      : 'bg-[hsl(34_40%_98%)] text-[hsl(355_30%_35%)] border border-[hsl(34_25%_85%)] shadow-[inset_0_1px_0_hsl(0_0%_100%/0.7),0_1px_2px_hsl(355_30%_20%/0.04)] hover:bg-white hover:border-[hsl(355_48%_39%/0.25)] hover:text-[hsl(355_48%_39%)] hover:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.9),0_4px_12px_hsl(355_48%_39%/0.1),0_0_0_1px_hsl(355_48%_39%/0.05)]'
+                    }
                     hover:-translate-y-0.5
-                    active:translate-y-0 active:scale-[0.98] active:bg-[hsl(355_48%_39%)] active:text-white active:border-[hsl(355_48%_35%)]
+                    active:translate-y-0 active:scale-[0.98]
                     transition-all duration-200 ease-out
-                    overflow-hidden"
+                    overflow-hidden`}
                   style={{
                     animationDelay: isPillsExpanded ? `${i * 40}ms` : '0ms',
                   }}
                 >
                   {/* Inner highlight on hover */}
-                  <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 bg-gradient-to-b from-[hsl(355_48%_39%/0.02)] to-transparent transition-opacity duration-200" />
-                  <span className="relative">{pill.label}</span>
+                  <span className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${pill.accent ? 'bg-gradient-to-b from-white/5 to-transparent' : 'bg-gradient-to-b from-[hsl(355_48%_39%/0.02)] to-transparent'}`} />
+                  <span className="relative flex items-center justify-center gap-1.5">
+                    <span className={`text-[9px] ${pill.accent ? 'text-white/70' : 'text-[hsl(355_48%_39%/0.5)] group-hover:text-[hsl(355_48%_39%/0.7)]'} transition-colors`}>{pill.icon}</span>
+                    <span>{pill.label}</span>
+                  </span>
                 </button>
               ))}
             </div>

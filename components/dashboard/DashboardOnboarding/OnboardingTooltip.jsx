@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { ArrowRight, ArrowLeft } from 'lucide-react'
 
 /**
  * OnboardingTooltip - A positioned tooltip with arrow that points to the highlighted element.
  * Premium burgundy design matching the welcome modal.
- * Automatically positions itself to avoid screen edges.
+ * Uses two-pass rendering to ensure correct positioning.
  */
 export const OnboardingTooltip = ({
   targetSelector,
@@ -20,13 +20,17 @@ export const OnboardingTooltip = ({
   isActive,
   position = 'auto' // 'top' | 'bottom' | 'left' | 'right' | 'auto'
 }) => {
-  const [tooltipStyle, setTooltipStyle] = useState({ opacity: 0 })
+  const [tooltipStyle, setTooltipStyle] = useState({ visibility: 'hidden', position: 'fixed', top: 0, left: 0 })
   const [arrowStyle, setArrowStyle] = useState({})
-  const [actualPosition, setActualPosition] = useState('bottom')
+  const [isPositioned, setIsPositioned] = useState(false)
   const tooltipRef = useRef(null)
+  const positionTimeoutRef = useRef(null)
 
   useEffect(() => {
-    if (!isActive || !targetSelector) return
+    if (!isActive || !targetSelector) {
+      setIsPositioned(false)
+      return
+    }
 
     const positionTooltip = () => {
       const target = document.querySelector(targetSelector)
@@ -39,6 +43,12 @@ export const OnboardingTooltip = ({
       const arrowSize = 12
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
+
+      // If tooltip hasn't rendered with dimensions yet, wait
+      if (tooltipRect.width === 0 || tooltipRect.height === 0) {
+        positionTimeoutRef.current = setTimeout(positionTooltip, 50)
+        return
+      }
 
       // Determine best position if auto
       let pos = position
@@ -59,8 +69,6 @@ export const OnboardingTooltip = ({
           pos = 'left'
         }
       }
-
-      setActualPosition(pos)
 
       let top, left, arrowTop, arrowLeft, arrowRotate
 
@@ -103,7 +111,7 @@ export const OnboardingTooltip = ({
         position: 'fixed',
         top: `${top}px`,
         left: `${left}px`,
-        opacity: 1,
+        visibility: 'visible',
         zIndex: 9999
       })
 
@@ -113,19 +121,25 @@ export const OnboardingTooltip = ({
         left: `${arrowLeft}px`,
         transform: `rotate(${arrowRotate}deg)`
       })
+
+      setIsPositioned(true)
     }
 
-    // Small delay to ensure target is rendered
-    const timer = setTimeout(positionTooltip, 50)
+    // Use requestAnimationFrame to ensure DOM has painted
+    const frame = requestAnimationFrame(() => {
+      positionTimeoutRef.current = setTimeout(positionTooltip, 10)
+    })
+
     window.addEventListener('resize', positionTooltip)
     window.addEventListener('scroll', positionTooltip, true)
 
     return () => {
-      clearTimeout(timer)
+      cancelAnimationFrame(frame)
+      if (positionTimeoutRef.current) clearTimeout(positionTimeoutRef.current)
       window.removeEventListener('resize', positionTooltip)
       window.removeEventListener('scroll', positionTooltip, true)
     }
-  }, [targetSelector, isActive, position])
+  }, [targetSelector, isActive, position, stepNumber]) // Added stepNumber to re-position on step change
 
   if (!isActive) return null
 
@@ -133,7 +147,9 @@ export const OnboardingTooltip = ({
     <div
       ref={tooltipRef}
       style={tooltipStyle}
-      className="w-[calc(100vw-32px)] sm:w-72 max-w-72 bg-[hsl(355_48%_25%)] rounded-2xl shadow-2xl animate-tooltip-enter"
+      className={`w-[calc(100vw-32px)] sm:w-72 max-w-72 bg-[hsl(355_48%_25%)] rounded-2xl shadow-2xl ${
+        isPositioned ? 'animate-tooltip-enter' : ''
+      }`}
     >
       {/* Arrow */}
       <div style={arrowStyle} className="w-0 h-0">

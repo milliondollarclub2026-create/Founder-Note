@@ -27,8 +27,8 @@ const ChatIcon = ({ className = "w-6 h-6 sm:w-7 sm:h-7" }) => (
 )
 
 /**
- * OnboardingWelcome - Premium welcome modal with user's name and tour introduction.
- * Deep burgundy design with custom SVG icons for a refined, professional look.
+ * OnboardingWelcome - Premium welcome modal with elegant floating orbs
+ * showcasing both Cashmere and Royal Garnet color palette.
  */
 export const OnboardingWelcome = ({ userName, onStart, onSkip, isOpen }) => {
   const [isVisible, setIsVisible] = useState(false)
@@ -77,6 +77,30 @@ export const OnboardingWelcome = ({ userName, onStart, onSkip, isOpen }) => {
           isExiting ? 'animate-modal-exit' : 'animate-modal-enter'
         }`}
       >
+        {/* Floating Orbs - Cashmere & Garnet palette */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Large cashmere orb - top left */}
+          <div
+            className="absolute -top-12 -left-12 w-40 h-40 rounded-full opacity-[0.08] welcome-orb-1"
+            style={{ background: 'radial-gradient(circle, hsl(34 40% 92%) 0%, transparent 70%)' }}
+          />
+          {/* Medium garnet orb - top right */}
+          <div
+            className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-[0.12] welcome-orb-2"
+            style={{ background: 'radial-gradient(circle, hsl(355 48% 50%) 0%, transparent 70%)' }}
+          />
+          {/* Small cashmere orb - bottom right */}
+          <div
+            className="absolute bottom-20 -right-6 w-24 h-24 rounded-full opacity-[0.06] welcome-orb-3"
+            style={{ background: 'radial-gradient(circle, hsl(34 38% 90%) 0%, transparent 70%)' }}
+          />
+          {/* Tiny garnet accent - bottom left */}
+          <div
+            className="absolute bottom-12 left-8 w-16 h-16 rounded-full opacity-[0.1] welcome-orb-1"
+            style={{ background: 'radial-gradient(circle, hsl(355 45% 55%) 0%, transparent 70%)' }}
+          />
+        </div>
+
         {/* Close button */}
         <button
           onClick={() => handleClose(onSkip)}
@@ -86,15 +110,12 @@ export const OnboardingWelcome = ({ userName, onStart, onSkip, isOpen }) => {
         </button>
 
         {/* Content - responsive padding */}
-        <div className="px-6 sm:px-10 pt-10 sm:pt-12 pb-8 sm:pb-10 text-center">
+        <div className="relative px-6 sm:px-10 pt-10 sm:pt-12 pb-8 sm:pb-10 text-center">
           {/* Hero Icon - responsive sizing */}
           <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-5 sm:mb-6">
-            {/* Pulsing glow ring */}
-            <div className="absolute inset-0 rounded-2xl bg-[hsl(355_48%_40%/0.4)] animate-pulse-glow" />
-
-            {/* Icon container */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center">
-              <svg className="w-7 h-7 sm:w-9 sm:h-9 text-[hsl(355_48%_25%)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            {/* Icon container - solid white, no animation to prevent flicker */}
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center">
+              <svg className="w-7 h-7 sm:w-9 sm:h-9 text-[hsl(355_48%_30%)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="2" width="6" height="11" rx="3" />
                 <path d="M5 10a7 7 0 0 0 14 0" />
                 <line x1="12" y1="17" x2="12" y2="21" />
@@ -178,16 +199,6 @@ export const OnboardingWelcome = ({ userName, onStart, onSkip, isOpen }) => {
             transform: scale(0.95) translateY(10px);
           }
         }
-        @keyframes pulse-glow {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.4;
-          }
-          50% {
-            transform: scale(1.08);
-            opacity: 0.2;
-          }
-        }
         @keyframes feature-reveal {
           from {
             opacity: 0;
@@ -198,16 +209,32 @@ export const OnboardingWelcome = ({ userName, onStart, onSkip, isOpen }) => {
             transform: translateY(0);
           }
         }
+        @keyframes orb-drift-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(8px, -6px) scale(1.05); }
+          66% { transform: translate(-4px, 4px) scale(0.98); }
+        }
+        @keyframes orb-drift-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-6px, 8px) scale(1.03); }
+        }
+        @keyframes orb-drift-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          40% { transform: translate(5px, -5px) scale(1.02); }
+          80% { transform: translate(-3px, 3px) scale(0.97); }
+        }
 
         .animate-backdrop-enter { animation: backdrop-enter 0.3s ease-out; }
         .animate-backdrop-exit { animation: backdrop-exit 0.25s ease-in forwards; }
         .animate-modal-enter { animation: modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .animate-modal-exit { animation: modal-exit 0.25s ease-in forwards; }
-        .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
         .animate-feature-reveal {
           opacity: 0;
           animation: feature-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        .welcome-orb-1 { animation: orb-drift-1 12s ease-in-out infinite; }
+        .welcome-orb-2 { animation: orb-drift-2 15s ease-in-out infinite; animation-delay: -3s; }
+        .welcome-orb-3 { animation: orb-drift-3 10s ease-in-out infinite; animation-delay: -5s; }
       `}</style>
     </div>
   )
