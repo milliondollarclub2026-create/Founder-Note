@@ -188,7 +188,7 @@ export const NoteDetailView = ({
 
       setHasUnsavedChanges(false)
       setIsEditing(false)
-      toast.success('Saved — updating AI insights...')
+      // Silent save - regeneration will show its own toast
 
       // Auto-regenerate AI content after saving
       regenerateAIContent()
@@ -225,7 +225,14 @@ export const NoteDetailView = ({
         onUpdateNote(data.note)
       }
 
-      toast.success('AI content regenerated')
+      toast.success('AI content regenerated', {
+        icon: <Check className="w-4 h-4 text-white" />,
+        style: {
+          background: 'hsl(355, 48%, 39%)',
+          color: 'white',
+          border: 'none',
+        },
+      })
     } catch (error) {
       toast.error('Failed to regenerate AI content')
       console.error('Regenerate error:', error)
@@ -479,7 +486,7 @@ export const NoteDetailView = ({
                       className="h-8 px-3 text-xs gap-1.5"
                     >
                       {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                      Save &amp; Update
+                      Save
                     </Button>
                   </div>
                 ) : (

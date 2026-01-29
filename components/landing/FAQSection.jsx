@@ -11,20 +11,20 @@ export default function FAQSection() {
 
   const faqs = [
     {
-      question: 'How does Founder Notes work?',
+      question: 'How does Founder Note work?',
       answer: 'Simply tap to record and speak your thoughts. Our AI transcribes in real-time with 95%+ accuracy, then automatically categorizes your content into notes, tasks, meetings, and more. From there, you can export to emails, social posts, or action items with one click.'
     },
     {
-      question: 'Who is Founder Notes for?',
-      answer: 'Founder Notes is built for founders, executives, and professionals who think faster than they type. If you\'re constantly capturing ideas, managing tasks, and need to stay organized, Founder Notes helps you do it all through voice—without slowing down.'
+      question: 'Who is Founder Note for?',
+      answer: 'Founder Note is built for founders, executives, and professionals who think faster than they type. If you\'re constantly capturing ideas, managing tasks, and need to stay organized, Founder Note helps you do it all through voice without slowing down.'
     },
     {
-      question: 'Is Founder Notes only for founders?',
-      answer: 'Not at all. While the name was inspired by the founder mindset of building and organizing ideas, Founder Notes is for anyone looking to boost their productivity. Students use it to capture lecture notes and study ideas, professionals use it to stay on top of meetings and tasks, and creatives use it to brainstorm freely. Whether you\'re in a corporate setting, running a side project, or just trying to organize your thoughts—Founder Notes is built for you.'
+      question: 'Is Founder Note only for founders?',
+      answer: 'Not at all. While the name was inspired by the founder mindset of building and organizing ideas, Founder Note is for anyone looking to boost their productivity. Students use it to capture lecture notes and study ideas, professionals use it to stay on top of meetings and tasks, and creatives use it to brainstorm freely. Whether you\'re in a corporate setting, running a side project, or just trying to organize your thoughts, Founder Note is built for you.'
     },
     {
       question: 'Is there a free trial?',
-      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Notes with full access to all features. After the trial ends, the beta plan is $14.99/month — and that price is locked in for early adopters even after launch. You can cancel anytime.'
+      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Note with full access to all features. After the trial ends, the beta plan is $14.99/month and that price is locked in for early adopters even after launch. You can cancel anytime.'
     },
     {
       question: 'What languages are supported?',
@@ -32,16 +32,16 @@ export default function FAQSection() {
     },
     {
       question: 'How does the AI analysis work?',
-      answer: 'Our AI analyzes your voice notes to extract key insights, action items, and summaries. It also powers our Ask feature—semantic search that lets you ask questions about your notes and get instant, relevant answers from your personal knowledge base.'
+      answer: 'Our AI analyzes your voice notes to extract key insights, action items, and summaries. It also powers our Ask feature, a semantic search that lets you ask questions about your notes and get instant, relevant answers from your personal knowledge base.'
     },
     {
-      question: 'Do Founder Notes have apps in the Play Store and App Store?',
-      answer: 'No, Founder Notes is currently only available as a web app. However, we are working on releasing apps in the Play Store and App Store in the future.'
+      question: 'Does Founder Note have apps in the Play Store and App Store?',
+      answer: 'No, Founder Note is currently only available as a web app. However, we are working on releasing apps in the Play Store and App Store in the future.'
     }
   ]
 
   return (
-    <section ref={sectionRef} className="py-24 px-6 warm-cream-tint">
+    <section id="faq" ref={sectionRef} className="py-24 px-6 warm-cream-tint">
       <div className="max-w-3xl mx-auto">
         <motion.div
           className="text-center mb-12"
@@ -53,7 +53,7 @@ export default function FAQSection() {
             Frequently asked questions
           </h2>
           <p className="text-lg md:text-xl text-gray-500 font-body">
-            Everything you need to know about Founder Notes.
+            Everything you need to know about Founder Note.
           </p>
         </motion.div>
 

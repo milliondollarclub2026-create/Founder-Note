@@ -249,6 +249,18 @@ You are scoped to: ${scopeDescription}`;
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
+      // Fetch intents related to this folder
+      const { data: folderIntents } = await supabase
+        .from('intents')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .eq('folder', contextScope.folder)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const intents = folderIntents || [];
+
       notes = folderNotes || [];
       scopeDescription = `the "${contextScope.folder}" folder (${notes.length} note${notes.length !== 1 ? 's' : ''})`;
 
@@ -262,6 +274,18 @@ Content: ${(n.smartified_text || n.transcription || '').substring(0, 800)}
 ---`).join('\n')
         : 'This folder is empty.';
 
+      // Add remembered items for this folder
+      let intentsContext = '';
+      if (intents.length > 0) {
+        intentsContext = '\n\n=== REMEMBERED ITEMS IN THIS FOLDER ===\n';
+        intents.forEach((intent, i) => {
+          const typeLabel = intent.intent_type === 'todo' ? 'To-Do' :
+                           intent.intent_type === 'follow-up' ? 'Follow-Up' : 'Remember';
+          intentsContext += `${i + 1}. [${typeLabel}] ${intent.normalized_intent || intent.raw_text}\n`;
+        });
+        intentsContext += '=== END REMEMBERED ITEMS ===\n';
+      }
+
       systemPrompt = `${REMY_PERSONALITY}
 
 CURRENT CONTEXT: You are viewing the FOLDER "${contextScope.folder}". Your knowledge is strictly limited to notes in this folder.
@@ -269,7 +293,7 @@ CURRENT CONTEXT: You are viewing the FOLDER "${contextScope.folder}". Your knowl
 === FOLDER: ${contextScope.folder} ===
 Total Notes: ${notes.length}
 ${folderContext}
-=== END FOLDER CONTEXT ===
+=== END FOLDER CONTEXT ===${intentsContext}
 
 STRICT RULES:
 1. Answer ONLY using information from notes in this folder. You cannot see notes in other folders.
@@ -278,6 +302,7 @@ STRICT RULES:
 4. If the user wants to search outside this folder, suggest: "To search all notes, return to 'All Notes' on the dashboard."
 5. You can compare notes within this folder, find patterns, summarize folder contents, etc.
 6. If the folder is empty, acknowledge it and suggest creating notes in this folder.
+7. If asked about things to remember, reference items from this folder's remembered items section.
 
 You are scoped to: ${scopeDescription}`;
     }
@@ -295,6 +320,18 @@ You are scoped to: ${scopeDescription}`;
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
+      // Fetch intents related to this tag
+      const { data: taggedIntents } = await supabase
+        .from('intents')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .contains('tags', [contextScope.tag])
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const intents = taggedIntents || [];
+
       notes = taggedNotes || [];
       scopeDescription = `notes tagged with "${contextScope.tag}" (${notes.length} note${notes.length !== 1 ? 's' : ''})`;
 
@@ -309,6 +346,18 @@ Content: ${(n.smartified_text || n.transcription || '').substring(0, 800)}
 ---`).join('\n')
         : 'No notes have this tag.';
 
+      // Add remembered items for this tag
+      let intentsContext = '';
+      if (intents.length > 0) {
+        intentsContext = '\n\n=== REMEMBERED ITEMS WITH THIS TAG ===\n';
+        intents.forEach((intent, i) => {
+          const typeLabel = intent.intent_type === 'todo' ? 'To-Do' :
+                           intent.intent_type === 'follow-up' ? 'Follow-Up' : 'Remember';
+          intentsContext += `${i + 1}. [${typeLabel}] ${intent.normalized_intent || intent.raw_text}\n`;
+        });
+        intentsContext += '=== END REMEMBERED ITEMS ===\n';
+      }
+
       systemPrompt = `${REMY_PERSONALITY}
 
 CURRENT CONTEXT: You are viewing notes tagged with "${contextScope.tag}". Your knowledge is strictly limited to notes with this tag.
@@ -316,7 +365,7 @@ CURRENT CONTEXT: You are viewing notes tagged with "${contextScope.tag}". Your k
 === TAG: #${contextScope.tag} ===
 Total Notes: ${notes.length}
 ${tagContext}
-=== END TAG CONTEXT ===
+=== END TAG CONTEXT ===${intentsContext}
 
 STRICT RULES:
 1. Answer ONLY using information from notes with the "${contextScope.tag}" tag. You cannot see untagged notes or notes with different tags.
@@ -325,6 +374,7 @@ STRICT RULES:
 4. If the user wants to search beyond this tag, suggest: "To search all notes, return to 'All Notes' on the dashboard."
 5. You can compare notes with this tag, find patterns, summarize themes, etc.
 6. If no notes have this tag, acknowledge it and suggest adding this tag to relevant notes.
+7. If asked about things to remember, reference items from this tag's remembered items section.
 
 You are scoped to: ${scopeDescription}`;
     }
@@ -341,6 +391,28 @@ You are scoped to: ${scopeDescription}`;
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+
+      // Fetch active intents (things user told Remy to remember via "Hey Remy" flow)
+      const { data: activeIntents } = await supabase
+        .from('intents')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const intents = activeIntents || [];
+
+      // Fetch active todos (action items extracted from notes)
+      const { data: activeTodos } = await supabase
+        .from('todos')
+        .select('*, notes(title)')
+        .eq('user_id', user.id)
+        .eq('completed', false)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const todos = activeTodos || [];
 
       notes = allNotes || [];
       scopeDescription = `all notes (${notes.length} total)`;
@@ -391,11 +463,46 @@ Content Preview: ${(n.smartified_text || n.transcription || '').substring(0, 500
 ---\n`;
       });
 
+      // Add action items (todos extracted from notes) to context
+      let todosContext = '';
+      if (todos.length > 0) {
+        todosContext = '\n\n=== ACTION ITEMS (from notes) ===\n';
+        todosContext += `You have ${todos.length} pending action item(s):\n\n`;
+        todos.forEach((todo, i) => {
+          todosContext += `${i + 1}. ${todo.title}\n`;
+          if (todo.notes?.title) {
+            todosContext += `   From note: "${todo.notes.title}"\n`;
+          }
+          todosContext += `   Added: ${new Date(todo.created_at).toLocaleDateString()}\n\n`;
+        });
+        todosContext += '=== END ACTION ITEMS ===\n';
+      }
+
+      // Add remembered items (intents from "Hey Remy" flow) to context
+      let intentsContext = '';
+      if (intents.length > 0) {
+        intentsContext = '\n\n=== THINGS YOU WERE ASKED TO REMEMBER ===\n';
+        intentsContext += `You have ${intents.length} active item(s) to remember:\n\n`;
+        intents.forEach((intent, i) => {
+          const typeLabel = intent.intent_type === 'todo' ? 'To-Do' :
+                           intent.intent_type === 'follow-up' ? 'Follow-Up' : 'Remember';
+          intentsContext += `${i + 1}. [${typeLabel}] ${intent.normalized_intent || intent.raw_text}\n`;
+          intentsContext += `   Added: ${new Date(intent.created_at).toLocaleDateString()}\n`;
+          if (intent.source_title) {
+            intentsContext += `   From note: "${intent.source_title}"\n`;
+          }
+          intentsContext += '\n';
+        });
+        intentsContext += '=== END REMEMBERED ITEMS ===\n';
+      }
+
       systemPrompt = `${REMY_PERSONALITY}
 
-CURRENT CONTEXT: You are on the DASHBOARD with GLOBAL ACCESS to all notes.
+CURRENT CONTEXT: You are on the DASHBOARD with GLOBAL ACCESS to all notes, action items, and remembered items.
 
 ${globalContext}
+${todosContext}
+${intentsContext}
 
 CAPABILITIES IN GLOBAL MODE:
 1. Search and reference ANY note the user has created
@@ -404,12 +511,16 @@ CAPABILITIES IN GLOBAL MODE:
 4. Summarize recent activity, specific folders, or tags
 5. Help the user find specific information they captured
 6. Disambiguate when multiple notes match a query (ask which one they mean or show options)
+7. List action items extracted from notes (see "ACTION ITEMS" section)
+8. Recall things the user explicitly asked you to remember via "Hey Remy" (see "THINGS YOU WERE ASKED TO REMEMBER" section)
 
 RESPONSE GUIDELINES:
 - When referencing content, always cite the note title
 - If a query matches multiple notes, present the most relevant options
 - Be proactive about suggesting related notes the user might want to review
 - If asked about something not in any notes, clearly state it wasn't found
+- When asked about "action items" or "tasks", reference the "ACTION ITEMS" section (these are extracted from notes)
+- When asked about "things to remember" or "what did I tell you to remember", reference the "THINGS YOU WERE ASKED TO REMEMBER" section (these are from "Hey Remy" requests)
 
 You are scoped to: ${scopeDescription}`;
     }

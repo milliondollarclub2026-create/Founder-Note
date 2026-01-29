@@ -94,9 +94,6 @@ export default function PricingPage() {
                   <p className="text-white/50 text-sm font-body mt-2">
                     Locked in. Price increases at launch.
                   </p>
-                  <p className="text-white/70 text-sm font-body mt-1 font-medium">
-                    Includes a 1-day free trial — no charge until it ends.
-                  </p>
                 </div>
 
                 <Link
@@ -106,6 +103,16 @@ export default function PricingPage() {
                   Join the beta
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+
+                {/* Free Trial Highlight */}
+                <div className="mt-4 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-center">
+                  <p className="text-white font-semibold text-sm font-body">
+                    Start with a 1-day free trial
+                  </p>
+                  <p className="text-white/70 text-xs font-body mt-0.5">
+                    No charge until your trial ends. Cancel anytime.
+                  </p>
+                </div>
 
                 {/* Features */}
                 <ul className="mt-10 space-y-4">

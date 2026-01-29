@@ -272,7 +272,7 @@ export default function Dashboard() {
   // Count unresolved todos
   const unresolvedTodosCount = todos.filter(t => !t.completed).length
 
-  // Merge pending todos + active intents into unified "Next Steps" list
+  // Merge pending todos + active intents into unified "Actions" list
   const nextStepsItems = useMemo(() => {
     const todoItems = todos
       .filter(t => !t.completed)
@@ -299,7 +299,7 @@ export default function Dashboard() {
     return [...todoItems, ...intentItems].slice(0, 20)
   }, [todos, intents])
 
-  // Build unique source map for inline numbered references in Next Steps
+  // Build unique source map for inline numbered references in Actions
   // Numbered by note creation order (oldest = 1, next = 2, etc.)
   const nextStepsSources = useMemo(() => {
     const sourceMap = new Map()
@@ -730,7 +730,7 @@ export default function Dashboard() {
   const deleteNote = async (noteId) => {
     try {
       await fetch(`/api/notes/${noteId}`, { method: 'DELETE' })
-      toast.success('Note deleted')
+      // Silent - no toast for note deletion
       setSelectedNote(null)
       fetchNotes()
       fetchTodos()
@@ -802,7 +802,7 @@ export default function Dashboard() {
         if (selectedNote?.id === noteId) setSelectedNote(data.note)
       }
 
-      toast.success('Tag added')
+      // Silent - no toast for tag operations
       setBrainDumpStale(true)
     } catch (error) {
       // Revert on error
@@ -844,7 +844,7 @@ export default function Dashboard() {
         if (selectedNote?.id === noteId) setSelectedNote(data.note)
       }
 
-      toast.success('Tag removed')
+      // Silent - no toast for tag operations
       setBrainDumpStale(true)
     } catch (error) {
       // Revert on error
@@ -894,7 +894,7 @@ export default function Dashboard() {
         if (selectedNote?.id === noteId) setSelectedNote(data.note)
       }
 
-      toast.success(`Moved to ${folder}`)
+      // Silent - no toast for folder operations
       setBrainDumpStale(true)
     } catch (error) {
       // Revert on error
@@ -939,7 +939,7 @@ export default function Dashboard() {
         if (selectedNote?.id === noteId) setSelectedNote(data.note)
       }
 
-      toast.success(`Removed from ${previousFolder}`)
+      // Silent - no toast for folder operations
       setBrainDumpStale(true)
     } catch (error) {
       // Revert on error
@@ -952,14 +952,14 @@ export default function Dashboard() {
   const createTag = (tag) => {
     if (!allTags.find(t => t.name === tag.name)) {
       const newTags = [...allTags, tag]; setAllTags(newTags); saveStoredTags(newTags)
-      toast.success(`Tag created`)
+      // Silent - no toast for tag operations
     }
   }
 
   const createFolder = (name) => {
     if (!folders.includes(name)) {
       const newFolders = [...folders, name]; setFolders(newFolders); saveStoredFolders(newFolders)
-      toast.success(`Folder created`)
+      // Silent - no toast for folder operations
     }
   }
 
@@ -1069,7 +1069,7 @@ export default function Dashboard() {
       }
 
       setBrainDumpStale(true)
-      toast.success(`Folder removed`)
+      // Silent - no toast for folder operations
     }, 0)
   }
 
@@ -1111,7 +1111,7 @@ export default function Dashboard() {
       }
 
       setBrainDumpStale(true)
-      toast.success(`Tag removed`)
+      // Silent - no toast for tag operations
     }, 0)
   }
 
@@ -1563,7 +1563,7 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground mt-1.5">
               {unresolvedTodosCount > 0 ? (
                 <span>
-                  You have <span className="text-primary font-medium">{unresolvedTodosCount} next step{unresolvedTodosCount !== 1 ? 's' : ''}</span> ready for you
+                  You have <span className="text-primary font-medium">{unresolvedTodosCount} action{unresolvedTodosCount !== 1 ? 's' : ''}</span> ready for you
                 </span>
               ) : (
                 <span>You're all clear. What's on your mind?</span>
@@ -1607,7 +1607,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Next Steps — unified todos + intents (hidden in brain dump mode) */}
+          {/* Actions — unified todos + intents (hidden in brain dump mode) */}
           {viewType === 'notes' && nextStepsItems.length > 0 && (
             <div className="mt-4 animate-fade-in relative z-10">
               <button
@@ -1615,7 +1615,7 @@ export default function Dashboard() {
                 className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
               >
                 <CircleCheckBig className="w-3.5 h-3.5 text-primary/50" />
-                <span>Next Steps</span>
+                <span>Actions</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/70">
                   {nextStepsItems.length}
                 </span>

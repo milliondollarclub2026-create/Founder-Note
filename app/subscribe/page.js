@@ -231,42 +231,72 @@ export default function SubscribePage() {
           </p>
         </div>
 
-        {/* Pricing Card */}
-        <div className="max-w-lg mx-auto">
+        {/* Pricing Card - Matching pricing page style */}
+        <div className="max-w-lg mx-auto pt-6">
           <div
-            className="rounded-2xl border-2 overflow-hidden transition-all duration-200"
+            className="relative rounded-3xl text-white shadow-2xl overflow-visible"
             style={{
-              background: 'hsl(34 45% 96%)',
-              borderColor: 'hsl(355 48% 39% / 0.2)',
-              boxShadow: '0 8px 32px -8px hsl(355 48% 39% / 0.1), 0 2px 6px hsl(34 30% 50% / 0.1)',
+              background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
             }}
           >
-            {/* Card Header */}
-            <div
-              className="px-8 py-6 text-center border-b"
-              style={{
-                background: 'linear-gradient(135deg, hsl(355 48% 39% / 0.06) 0%, hsl(34 38% 92% / 0.5) 100%)',
-                borderColor: 'hsl(34 30% 80%)',
-              }}
-            >
-              <p className="text-sm font-medium text-primary uppercase tracking-wide mb-2">
-                Beta Plan
-              </p>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-5xl font-bold text-foreground tracking-tight">$14.99</span>
-                <span className="text-lg text-muted-foreground">/month</span>
+            {/* Badge */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+              <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
+                Limited Beta
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Locked in. Price increases at launch.
-              </p>
-              <p className="text-sm text-foreground/70 mt-1 font-medium">
-                Includes a 1-day free trial — no charge until it ends.
-              </p>
             </div>
 
-            {/* Features */}
-            <div className="px-8 py-8">
-              <ul className="space-y-4">
+            {/* Card Content */}
+            <div className="p-10 pt-12">
+              <h3 className="text-2xl font-display mb-1">Beta Plan</h3>
+              <p className="text-white/70 text-sm font-body mb-8">
+                Everything you need to capture and organize your ideas.
+              </p>
+
+              <div className="mb-8">
+                <span className="text-6xl font-display">$14.99</span>
+                <span className="text-white/70 font-body">/ month</span>
+                <p className="text-white/50 text-sm font-body mt-2">
+                  Locked in. Price increases at launch.
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white animate-fade-in">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                onClick={handleSubscribe}
+                disabled={isProcessing}
+                className="w-full py-4 h-auto rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 font-body bg-white text-[hsl(355,48%,39%)] hover:bg-white/90 shadow-lg text-lg"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5" />
+                    Join the beta
+                  </>
+                )}
+              </Button>
+
+              {/* Free Trial Highlight */}
+              <div className="mt-4 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-center">
+                <p className="text-white font-semibold text-sm font-body">
+                  Start with a 1-day free trial
+                </p>
+                <p className="text-white/70 text-xs font-body mt-0.5">
+                  No charge until your trial ends. Cancel anytime.
+                </p>
+              </div>
+
+              {/* Features */}
+              <ul className="mt-10 space-y-4">
                 {[
                   { icon: Mic, text: '10 notes and 100 minutes per month' },
                   { icon: Sparkles, text: 'AI transcription and summaries' },
@@ -276,52 +306,27 @@ export default function SubscribePage() {
                   { icon: Zap, text: 'Action items and follow-ups' },
                   { icon: Shield, text: 'Early adopter pricing, locked in' },
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}>
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'hsl(355 48% 39% / 0.08)' }}
-                    >
-                      <feature.icon className="w-4 h-4 text-primary" />
+                  <li
+                    key={i}
+                    className="flex items-center gap-3 animate-fade-in"
+                    style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <feature.icon className="w-4 h-4 text-white/90" />
                     </div>
-                    <span className="text-foreground text-[15px]">{feature.text}</span>
+                    <span className="text-white/90 text-[15px] font-body">{feature.text}</span>
                   </li>
                 ))}
               </ul>
 
-              {error && (
-                <div className="mt-6 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-fade-in">
-                  {error}
-                </div>
-              )}
-
-              {/* CTA Button */}
-              <Button
-                onClick={handleSubscribe}
-                disabled={isProcessing}
-                className="w-full h-14 mt-8 rounded-xl text-lg font-semibold shadow-lg transition-all duration-200 cta-shimmer"
-                style={{
-                  boxShadow: '0 4px 14px -2px hsl(355 48% 39% / 0.25)',
-                }}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Join the beta
-                  </>
-                )}
-              </Button>
-
               {/* Trust badges */}
-              <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+              <div className="mt-8 pt-6 border-t border-white/15 flex items-center justify-center gap-4 text-xs text-white/40 font-body">
                 <span className="flex items-center gap-1">
                   <Shield className="w-3 h-3" />
                   Secure checkout
                 </span>
+                <span>·</span>
+                <span>Cancel anytime</span>
                 <span>·</span>
                 <span>Powered by Lemon Squeezy</span>
               </div>
@@ -331,7 +336,6 @@ export default function SubscribePage() {
           {/* Additional info */}
           <p className="text-center text-xs text-muted-foreground/50 mt-6 leading-relaxed">
             By subscribing, you agree to our Terms of Service and Privacy Policy.
-            Cancel anytime. Your subscription renews monthly until cancelled.
           </p>
         </div>
       </main>
