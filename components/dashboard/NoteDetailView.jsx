@@ -124,7 +124,8 @@ export const NoteDetailView = ({
   showSearchResults,
   setShowSearchResults,
   onSelectSearchResult,
-  onIntentCaptured
+  onIntentCaptured,
+  onTodosUpdated
 }) => {
   const [isChatExpanded, setIsChatExpanded] = useState(false)
   const [showTagPicker, setShowTagPicker] = useState(false)
@@ -223,6 +224,11 @@ export const NoteDetailView = ({
       // Update parent state with new summary and key points
       if (onUpdateNote) {
         onUpdateNote(data.note)
+      }
+
+      // Refresh todos since action items were regenerated
+      if (onTodosUpdated) {
+        onTodosUpdated()
       }
 
       toast.success('AI content regenerated', {
@@ -451,7 +457,7 @@ export const NoteDetailView = ({
                   <li
                     key={i}
                     onClick={() => { navigator.clipboard.writeText(point); toast.success('Key point copied') }}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 cursor-pointer hover:bg-secondary/50 transition-colors duration-150 group/kp"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-transparent cursor-pointer hover:bg-secondary/30 transition-colors duration-150 group/kp"
                     title="Click to copy"
                   >
                     <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/kp:bg-primary group-hover/kp:text-primary-foreground transition-colors">{i + 1}</span>

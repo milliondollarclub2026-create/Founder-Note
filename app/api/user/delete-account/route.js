@@ -13,6 +13,56 @@ export async function DELETE(request) {
     // Admin client needed for cross-table deletes and auth.admin.deleteUser()
     const supabase = createAdminClient();
 
+    // 0. Cancel subscription if active (before deleting data)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('subscription_id, subscription_status')
+      .eq('user_id', userId)
+      .single();
+
+    if (profile?.subscription_id && profile?.subscription_status === 'active') {
+      const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+      if (apiKey) {
+        // Cancel subscription via Lemon Squeezy API with timeout protection
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+
+        try {
+          const cancelResponse = await fetch(
+            `https://api.lemonsqueezy.com/v1/subscriptions/${profile.subscription_id}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/vnd.api+json',
+                'Accept': 'application/vnd.api+json',
+              },
+              body: JSON.stringify({
+                data: {
+                  type: 'subscriptions',
+                  id: String(profile.subscription_id),
+                  attributes: {
+                    cancelled: true,
+                  },
+                },
+              }),
+              signal: controller.signal,
+            }
+          );
+          clearTimeout(timeout);
+
+          if (!cancelResponse.ok) {
+            console.error('Lemon Squeezy cancel error during account deletion:', cancelResponse.status);
+            // Continue with deletion - webhook will handle it as backup
+          }
+        } catch (cancelError) {
+          clearTimeout(timeout);
+          console.error('Subscription cancel error during account deletion:', cancelError.message);
+          // Continue with deletion regardless - data wipe is the priority
+        }
+      }
+    }
+
     // 1. Delete todos linked to user's notes (FK dependency)
     const { data: userNotes } = await supabase
       .from('notes')

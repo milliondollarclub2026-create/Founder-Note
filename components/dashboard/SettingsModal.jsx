@@ -363,7 +363,7 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                   <ul className="text-[12px] text-destructive/80 mt-2 space-y-1 list-disc list-inside">
                     <li>All your data (notes, transcripts, AI content)</li>
                     <li>Your user profile and preferences</li>
-                    <li>Your subscription and billing</li>
+                    <li>Your subscription (will be automatically cancelled)</li>
                     <li>Your authentication account</li>
                   </ul>
                 </div>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  FileText, Folder, Tag, Home, ChevronUp, X, ArrowUp,
-  Loader2, Sparkles, MessageCircle
+  FileText, Folder, Tag, Home, ChevronUp, ChevronDown, X, ArrowUp,
+  Loader2, Sparkles, MessageCircle, RotateCcw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -28,6 +28,7 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [scopeInfo, setScopeInfo] = useState(null)
+  const [isPillsExpanded, setIsPillsExpanded] = useState(true) // Pills sleeve state
   const endRef = useRef(null)
   const prevScopeRef = useRef(null)
   const messageCacheRef = useRef({}) // Cache messages per scope key
@@ -52,6 +53,14 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Clear chat function - clears messages and removes from cache
+  const clearChat = () => {
+    const currentScopeKey = JSON.stringify(contextScope)
+    setMessages([])
+    delete messageCacheRef.current[currentScopeKey]
+    setScopeInfo(null)
+  }
 
   // Scope colors — tonal variations within the cashmere/burgundy family
   const scopeStyles = {
@@ -123,6 +132,7 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setIsLoading(true)
+    setIsPillsExpanded(false) // Collapse pills when sending
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -196,46 +206,20 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
           <div className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: scopeDisplay.bg, color: scopeDisplay.color, border: `1px solid ${scopeDisplay.border}` }}>
             {scopeDisplay.title}
           </div>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-smooth"
+              title="Clear conversation"
+            >
+              <RotateCcw className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
           <button onClick={onToggle} className="p-1.5 rounded-lg hover:bg-secondary transition-smooth">
             <X className="w-4 h-4" />
           </button>
         </div>
       </div>
-
-      {/* Suggestion Pills - context-aware prompts */}
-      {messages.length === 0 && (
-        <div className="px-4 pt-3 flex flex-wrap gap-1.5">
-          {(contextScope.type === 'note' ? [
-            { label: 'Ask Remy to summarize', prompt: 'Summarize this note for me' },
-            { label: "Remy's key takeaways", prompt: 'What are the key takeaways from this note?' },
-            { label: 'Remy, find action items', prompt: 'List the action items from this note' },
-            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
-          ] : contextScope.type === 'folder' ? [
-            { label: 'Ask Remy about this folder', prompt: `Summarize the notes in ${contextScope.folder}` },
-            { label: 'Remy, find common themes', prompt: 'What are the common themes across these notes?' },
-            { label: 'Remy, open questions?', prompt: 'What open questions are there across these notes?' },
-            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
-          ] : contextScope.type === 'tag' ? [
-            { label: `Ask Remy about #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
-            { label: 'Remy, find patterns', prompt: 'What patterns do you see in these notes?' },
-            { label: 'Remy, list action items', prompt: 'List all action items from these notes' },
-            { label: 'Hey Remy, remember...', prompt: 'Hey Remy, remember this: ' },
-          ] : [
-            { label: 'Remy, recent highlights', prompt: 'What are the highlights from my recent notes?' },
-            { label: 'Remy, open action items', prompt: 'What action items are still open?' },
-            { label: 'Remy, key themes', prompt: 'What are the key themes across my notes?' },
-            { label: "Hey Remy, don't forget...", prompt: "Remy, don't forget " },
-          ]).map((pill, i) => (
-            <button
-              key={i}
-              onClick={() => setInput(pill.prompt)}
-              className="text-[11px] px-3 py-1.5 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 hover:text-primary transition-colors"
-            >
-              {pill.label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Messages */}
       <ScrollArea className="h-64 px-4 py-3">
@@ -302,8 +286,74 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
         </div>
       </ScrollArea>
 
+      {/* Suggestion Pills Sleeve - slides above input */}
+      <div className="border-t border-border">
+        {/* Pills toggle handle */}
+        {messages.length > 0 && !isPillsExpanded && (
+          <button
+            onClick={() => setIsPillsExpanded(true)}
+            className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronUp className="w-3 h-3" />
+            <span>Suggestions</span>
+          </button>
+        )}
+
+        {/* Sliding pills container */}
+        <div
+          className={`px-4 overflow-hidden transition-all duration-200 ${
+            isPillsExpanded ? 'animate-sleeve-expand' : messages.length > 0 ? 'animate-sleeve-collapse' : ''
+          }`}
+          style={{
+            maxHeight: isPillsExpanded ? '120px' : '0',
+            paddingTop: isPillsExpanded ? '0.75rem' : '0',
+            opacity: isPillsExpanded ? 1 : 0
+          }}
+        >
+          <div className="flex flex-wrap gap-1.5">
+            {(contextScope.type === 'note' ? [
+              { label: 'Summarize', prompt: 'Summarize this note for me' },
+              { label: 'Key takeaways', prompt: 'What are the key takeaways from this note?' },
+              { label: 'Action items', prompt: 'List the action items from this note' },
+              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+            ] : contextScope.type === 'folder' ? [
+              { label: 'Summarize folder', prompt: `Summarize the notes in ${contextScope.folder}` },
+              { label: 'Common themes', prompt: 'What are the common themes across these notes?' },
+              { label: 'Open questions', prompt: 'What open questions are there across these notes?' },
+              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+            ] : contextScope.type === 'tag' ? [
+              { label: `About #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
+              { label: 'Find patterns', prompt: 'What patterns do you see in these notes?' },
+              { label: 'Action items', prompt: 'List all action items from these notes' },
+              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+            ] : [
+              { label: 'Recent highlights', prompt: 'What are the highlights from my recent notes?' },
+              { label: 'Open actions', prompt: 'What action items are still open?' },
+              { label: 'Key themes', prompt: 'What are the key themes across my notes?' },
+              { label: "Don't forget...", prompt: "Remy, don't forget " },
+            ]).map((pill, i) => (
+              <button
+                key={i}
+                onClick={() => setInput(pill.prompt)}
+                className="text-[11px] px-3 py-1.5 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 hover:text-primary transition-colors"
+              >
+                {pill.label}
+              </button>
+            ))}
+            {messages.length > 0 && isPillsExpanded && (
+              <button
+                onClick={() => setIsPillsExpanded(false)}
+                className="text-[11px] px-2 py-1.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronDown className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Input */}
-      <div className="px-4 py-3 border-t border-border">
+      <div className="px-4 py-3">
         <div className="flex items-end gap-2">
           <textarea
             placeholder={scopeDisplay.placeholder}

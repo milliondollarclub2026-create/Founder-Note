@@ -18,7 +18,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'noteId and transcription required' }, { status: 400 });
     }
 
-    // Generate new summary and key points
+    // Generate new summary, key points, AND action items
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -28,12 +28,13 @@ export async function POST(request) {
 Extract and return a JSON object with:
 - summary: 2-3 sentence summary of the key content
 - key_points: Array of bullet points (main ideas/insights, 3-7 points)
+- action_items: Array of actionable tasks mentioned or implied (things to do, follow up on, etc.)
 
 Return ONLY valid JSON, no markdown or explanation.`
         },
         {
           role: 'user',
-          content: `Extract summary and key points from this transcription:\n\n"${transcription}"`
+          content: `Extract summary, key points, and action items from this transcription:\n\n"${transcription}"`
         }
       ],
       temperature: 0.3,
@@ -71,11 +72,47 @@ Return ONLY valid JSON, no markdown or explanation.`
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Regenerate action items (todos) for this note
+    const actionItems = extracted.action_items || [];
+
+    // Delete existing todos for this note
+    const { error: deleteError } = await supabase
+      .from('todos')
+      .delete()
+      .eq('note_id', noteId)
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      console.error('Todo delete error:', deleteError);
+      // Continue anyway - non-critical
+    }
+
+    // Insert new todos if there are action items
+    if (actionItems.length > 0) {
+      const todosToInsert = actionItems.map(item => ({
+        user_id: user.id,
+        note_id: noteId,
+        title: item,
+        completed: false,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: insertError } = await supabase
+        .from('todos')
+        .insert(todosToInsert);
+
+      if (insertError) {
+        console.error('Todo insert error:', insertError);
+        // Continue anyway - non-critical
+      }
+    }
+
     return NextResponse.json({
       success: true,
       note: data,
       summary: extracted.summary,
-      key_points: extracted.key_points
+      key_points: extracted.key_points,
+      action_items: actionItems
     });
   } catch (error) {
     console.error('API Error:', error);

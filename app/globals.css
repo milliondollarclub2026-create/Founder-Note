@@ -690,3 +690,24 @@
 .animate-breathing-glow {
   animation: breathingGlow 2s ease-in-out infinite;
 }
+
+/* Chat pills sleeve animations */
+@keyframes sleeve-expand {
+  from { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+  to { max-height: 120px; opacity: 1; padding-top: 0.75rem; padding-bottom: 0; }
+}
+
+@keyframes sleeve-collapse {
+  from { max-height: 120px; opacity: 1; padding-top: 0.75rem; padding-bottom: 0; }
+  to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+}
+
+.animate-sleeve-expand {
+  animation: sleeve-expand 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+.animate-sleeve-collapse {
+  animation: sleeve-collapse 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}

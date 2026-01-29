@@ -26,6 +26,7 @@ import { CreateTagModal } from '@/components/dashboard/CreateTagModal'
 import { CreateFolderModal } from '@/components/dashboard/CreateFolderModal'
 import { GlobalChatBar } from '@/components/dashboard/ChatPanel'
 import { CompletedView } from '@/components/dashboard/CompletedView'
+import { DashboardOnboarding } from '@/components/dashboard/DashboardOnboarding'
 
 // Create Supabase client for auth
 const createClient = () => {
@@ -219,6 +220,15 @@ export default function Dashboard() {
   // State for next steps section (merged todos + intents)
   const [nextStepsExpanded, setNextStepsExpanded] = useState(true)
   const [intents, setIntents] = useState([])
+
+  // Auto-collapse Actions when navigating to folder/tag, expand on All Notes
+  useEffect(() => {
+    if (selectedFolder || selectedTag) {
+      setNextStepsExpanded(false)
+    } else {
+      setNextStepsExpanded(true)
+    }
+  }, [selectedFolder, selectedTag])
 
   // Fetch intents (next steps / focus items)
   const fetchIntents = async () => {
@@ -501,6 +511,22 @@ export default function Dashboard() {
       console.error('Delete account error:', error)
       toast.error(error.message || 'Failed to delete account')
       throw error
+    }
+  }
+
+  // Complete dashboard onboarding
+  const handleCompleteOnboarding = async () => {
+    try {
+      const supabase = createClient()
+      await supabase
+        .from('user_profiles')
+        .update({ dashboard_onboarding_completed: true })
+        .eq('user_id', authUser.id)
+
+      // Update local state
+      setUserProfile(prev => ({ ...prev, dashboard_onboarding_completed: true }))
+    } catch (error) {
+      console.error('Failed to mark onboarding complete:', error)
     }
   }
   // Removed the dependency on selectedTag/selectedFolder since filtering happens in displayNotes
@@ -1248,6 +1274,7 @@ export default function Dashboard() {
       setShowSearchResults={setShowSearchResults}
       onSelectSearchResult={(note) => { setSelectedNote(note); setSearchQuery(''); setShowSearchResults(false); }}
       onIntentCaptured={fetchIntents}
+      onTodosUpdated={fetchTodos}
     />
   }
 
@@ -1259,7 +1286,7 @@ export default function Dashboard() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-56 border-r border-border bg-sidebar flex flex-col transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside data-onboarding="sidebar" className={`fixed lg:static inset-y-0 left-0 z-50 w-56 border-r border-border bg-sidebar flex flex-col transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-4 py-5">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
@@ -1574,7 +1601,9 @@ export default function Dashboard() {
           {/* Toggle + Filters row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <ViewModeToggle mode={viewType} onChange={setViewType} />
+              <div data-onboarding="view-toggle">
+                <ViewModeToggle mode={viewType} onChange={setViewType} />
+              </div>
               {(selectedFolder || selectedTag) && (
                 <span className="text-xs text-muted-foreground">
                   {selectedTag ? `#${selectedTag}` : selectedFolder} ({displayNotes.length})
@@ -1609,7 +1638,7 @@ export default function Dashboard() {
 
           {/* Actions — unified todos + intents (hidden in brain dump mode) */}
           {viewType === 'notes' && nextStepsItems.length > 0 && (
-            <div className="mt-4 animate-fade-in relative z-10">
+            <div data-onboarding="actions" className="mt-4 animate-fade-in relative z-10">
               <button
                 onClick={() => setNextStepsExpanded(!nextStepsExpanded)}
                 className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
@@ -1812,10 +1841,12 @@ export default function Dashboard() {
           >
             <button
               onClick={startRecording}
+              data-onboarding="mic-button"
               className="p-4 md:p-3.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 animate-pulse-glow flex-shrink-0 mb-0.5"
             >
               <Mic className="w-5 h-5" />
             </button>
+            <div data-onboarding="chat-bar">
             <GlobalChatBar
               isExpanded={isChatExpanded}
               onToggle={() => setIsChatExpanded(!isChatExpanded)}
@@ -1833,6 +1864,7 @@ export default function Dashboard() {
               }}
               onIntentCaptured={fetchIntents}
             />
+            </div>
           </div>
         </div>
         </>
@@ -1851,6 +1883,14 @@ export default function Dashboard() {
       />
       <CreateTagModal open={isCreateTagOpen} onClose={() => setIsCreateTagOpen(false)} onCreate={createTag} />
       <CreateFolderModal open={isCreateFolderOpen} onClose={() => setIsCreateFolderOpen(false)} onCreate={createFolder} />
+
+      {/* Dashboard Onboarding Tour */}
+      <DashboardOnboarding
+        userName={userProfile?.full_name || authUser?.user_metadata?.full_name}
+        isOnboardingComplete={userProfile?.dashboard_onboarding_completed === true}
+        onComplete={handleCompleteOnboarding}
+        onStartRecording={startRecording}
+      />
     </div>
   )
 }
