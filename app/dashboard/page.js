@@ -464,11 +464,10 @@ export default function Dashboard() {
         throw new Error(data.error || 'Failed to cancel subscription')
       }
 
-      // Sign out locally and redirect
-      const supabase = createClient()
-      await supabase.auth.signOut()
-
+      // Sign out and redirect — don't await signOut to avoid hanging
       toast.success('Subscription cancelled. You can resubscribe anytime.')
+      const supabase = createClient()
+      supabase.auth.signOut().catch(() => {})
       router.push('/auth')
     } catch (error) {
       console.error('Cancel subscription error:', error)

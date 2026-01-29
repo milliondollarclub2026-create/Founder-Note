@@ -37,30 +37,53 @@ export async function POST() {
     }
 
     // Cancel subscription via Lemon Squeezy API (PATCH with cancelled: true)
-    const cancelResponse = await fetch(
-      `https://api.lemonsqueezy.com/v1/subscriptions/${profile.subscription_id}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/vnd.api+json',
-          'Accept': 'application/vnd.api+json',
-        },
-        body: JSON.stringify({
-          data: {
-            type: 'subscriptions',
-            id: String(profile.subscription_id),
-            attributes: {
-              cancelled: true,
-            },
-          },
-        }),
-      }
-    );
+    // Use AbortController to prevent hanging if Lemon Squeezy is slow
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    if (!cancelResponse.ok) {
-      const errorData = await cancelResponse.text();
-      console.error('Lemon Squeezy cancel error:', errorData);
+    let lsOk = false;
+    try {
+      const cancelResponse = await fetch(
+        `https://api.lemonsqueezy.com/v1/subscriptions/${profile.subscription_id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/vnd.api+json',
+            'Accept': 'application/vnd.api+json',
+          },
+          body: JSON.stringify({
+            data: {
+              type: 'subscriptions',
+              id: String(profile.subscription_id),
+              attributes: {
+                cancelled: true,
+              },
+            },
+          }),
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeout);
+
+      if (!cancelResponse.ok) {
+        const errorData = await cancelResponse.text();
+        console.error('Lemon Squeezy cancel error:', cancelResponse.status, errorData);
+        return NextResponse.json({ error: 'Failed to cancel subscription' }, { status: 500 });
+      }
+      lsOk = true;
+    } catch (fetchError) {
+      clearTimeout(timeout);
+      if (fetchError.name === 'AbortError') {
+        console.error('Lemon Squeezy cancel timed out — proceeding with DB update');
+        // Timed out but Lemon Squeezy may have processed it; update DB and let webhook reconcile
+        lsOk = true;
+      } else {
+        throw fetchError;
+      }
+    }
+
+    if (!lsOk) {
       return NextResponse.json({ error: 'Failed to cancel subscription' }, { status: 500 });
     }
 
