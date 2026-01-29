@@ -7,6 +7,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { Eye, EyeOff, Check, X, Loader2, Lock, Mail, User, Sparkles, ArrowLeft, ArrowRight, Chrome } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 // Create Supabase client
 const createClient = () => {
@@ -195,9 +196,14 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
         </p>
       </div>
 
-      {/* Google Sign In - Primary CTA with presence */}
+      {/* Google Sign In - Disabled during beta, shows toast only */}
       <Button
-        onClick={onGoogleSignIn}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onGoogleSignIn()
+        }}
         disabled={isLoading}
         variant="outline"
         className="w-full h-14 rounded-xl text-base font-medium border-2 gap-3 transition-all duration-200"
@@ -770,7 +776,6 @@ function AuthPageContent() {
   const [viewDirection, setViewDirection] = useState('forward') // forward or back
   const [verificationEmail, setVerificationEmail] = useState('')
   const [resetEmail, setResetEmail] = useState('')
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -796,41 +801,12 @@ function AuthPageContent() {
     }
   }, [searchParams])
   
-  // Handle Google Sign In
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true)
-    setError('')
-    
-    try {
-      const supabase = createClient()
-      
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-          scopes: [
-            'https://www.googleapis.com/auth/gmail.readonly',
-            'https://www.googleapis.com/auth/calendar.readonly',
-            'https://www.googleapis.com/auth/calendar.events',
-          ].join(' '),
-        },
-      })
-      
-      if (authError) {
-        setError(authError.message)
-        setIsGoogleLoading(false)
-        return
-      }
-      
-      // Redirect happens automatically
-    } catch (err) {
-      setError('Failed to sign in with Google. Please try again.')
-      setIsGoogleLoading(false)
-    }
+  // Handle Google Sign In — fully disabled during beta, no OAuth call
+  const handleGoogleSignIn = () => {
+    toast('Google sign-in will be available after the beta phase. Please use email for now.', {
+      duration: 4000,
+    })
+    return false
   }
   
   const handleSignupSuccess = (email) => {
@@ -894,7 +870,7 @@ function AuthPageContent() {
               <MainEntryView
                 onGoogleSignIn={handleGoogleSignIn}
                 onEmailSignIn={() => navigateTo('email-login', 'forward')}
-                isLoading={isGoogleLoading}
+                isLoading={false}
               />
             )}
 
