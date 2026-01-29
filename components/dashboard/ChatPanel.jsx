@@ -60,6 +60,7 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
     setMessages([])
     delete messageCacheRef.current[currentScopeKey]
     setScopeInfo(null)
+    setIsPillsExpanded(true)  // Reset pills to expanded state
   }
 
   // Scope colors — tonal variations within the cashmere/burgundy family
@@ -286,68 +287,74 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
         </div>
       </ScrollArea>
 
-      {/* Suggestion Pills Sleeve - slides above input */}
-      <div className="border-t border-border">
-        {/* Pills toggle handle */}
+      {/* Premium Suggestion Pills Sleeve */}
+      <div className="border-t border-border/50">
+        {/* Collapsed state - minimal toggle */}
         {messages.length > 0 && !isPillsExpanded && (
           <button
             onClick={() => setIsPillsExpanded(true)}
-            className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 py-2 text-[11px] text-muted-foreground/70 hover:text-muted-foreground hover:bg-secondary/30 transition-all duration-200"
           >
-            <ChevronUp className="w-3 h-3" />
-            <span>Suggestions</span>
+            <Sparkles className="w-3 h-3" />
+            <span className="font-medium">Quick prompts</span>
+            <ChevronUp className="w-3 h-3 ml-0.5" />
           </button>
         )}
 
-        {/* Sliding pills container */}
+        {/* Expanded pills container */}
         <div
-          className={`px-4 overflow-hidden transition-all duration-200 ${
-            isPillsExpanded ? 'animate-sleeve-expand' : messages.length > 0 ? 'animate-sleeve-collapse' : ''
-          }`}
+          className="overflow-hidden transition-all duration-300 ease-out"
           style={{
-            maxHeight: isPillsExpanded ? '120px' : '0',
-            paddingTop: isPillsExpanded ? '0.75rem' : '0',
+            maxHeight: isPillsExpanded ? '140px' : '0',
             opacity: isPillsExpanded ? 1 : 0
           }}
         >
-          <div className="flex flex-wrap gap-1.5">
-            {(contextScope.type === 'note' ? [
-              { label: 'Summarize', prompt: 'Summarize this note for me' },
-              { label: 'Key takeaways', prompt: 'What are the key takeaways from this note?' },
-              { label: 'Action items', prompt: 'List the action items from this note' },
-              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
-            ] : contextScope.type === 'folder' ? [
-              { label: 'Summarize folder', prompt: `Summarize the notes in ${contextScope.folder}` },
-              { label: 'Common themes', prompt: 'What are the common themes across these notes?' },
-              { label: 'Open questions', prompt: 'What open questions are there across these notes?' },
-              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
-            ] : contextScope.type === 'tag' ? [
-              { label: `About #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
-              { label: 'Find patterns', prompt: 'What patterns do you see in these notes?' },
-              { label: 'Action items', prompt: 'List all action items from these notes' },
-              { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
-            ] : [
-              { label: 'Recent highlights', prompt: 'What are the highlights from my recent notes?' },
-              { label: 'Open actions', prompt: 'What action items are still open?' },
-              { label: 'Key themes', prompt: 'What are the key themes across my notes?' },
-              { label: "Don't forget...", prompt: "Remy, don't forget " },
-            ]).map((pill, i) => (
-              <button
-                key={i}
-                onClick={() => setInput(pill.prompt)}
-                className="text-[11px] px-3 py-1.5 rounded-full bg-primary/5 text-primary/70 border border-primary/10 hover:bg-primary/10 hover:text-primary transition-colors"
-              >
-                {pill.label}
-              </button>
-            ))}
-            {messages.length > 0 && isPillsExpanded && (
+          {/* Header with collapse button */}
+          {messages.length > 0 && isPillsExpanded && (
+            <div className="flex items-center justify-between px-4 pt-2.5 pb-1">
+              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">Quick prompts</span>
               <button
                 onClick={() => setIsPillsExpanded(false)}
-                className="text-[11px] px-2 py-1.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary/50 transition-colors"
               >
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="w-3.5 h-3.5" />
               </button>
-            )}
+            </div>
+          )}
+
+          {/* Pills - horizontal scroll on mobile, wrap on desktop */}
+          <div className="px-4 pb-3 pt-1">
+            <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {(contextScope.type === 'note' ? [
+                { label: 'Summarize', prompt: 'Summarize this note for me' },
+                { label: 'Key takeaways', prompt: 'What are the key takeaways from this note?' },
+                { label: 'Action items', prompt: 'List the action items from this note' },
+                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+              ] : contextScope.type === 'folder' ? [
+                { label: 'Summarize folder', prompt: `Summarize the notes in ${contextScope.folder}` },
+                { label: 'Common themes', prompt: 'What are the common themes across these notes?' },
+                { label: 'Open questions', prompt: 'What open questions are there across these notes?' },
+                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+              ] : contextScope.type === 'tag' ? [
+                { label: `About #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
+                { label: 'Find patterns', prompt: 'What patterns do you see in these notes?' },
+                { label: 'Action items', prompt: 'List all action items from these notes' },
+                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+              ] : [
+                { label: 'Recent highlights', prompt: 'What are the highlights from my recent notes?' },
+                { label: 'Open actions', prompt: 'What action items are still open?' },
+                { label: 'Key themes', prompt: 'What are the key themes across my notes?' },
+                { label: "Don't forget...", prompt: "Remy, don't forget " },
+              ]).map((pill, i) => (
+                <button
+                  key={i}
+                  onClick={() => setInput(pill.prompt)}
+                  className="flex-shrink-0 text-[11px] px-3.5 py-2 rounded-lg bg-secondary/60 text-foreground/70 border border-border/40 hover:bg-secondary hover:text-foreground hover:border-border/60 hover:shadow-sm active:scale-[0.97] transition-all duration-150"
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

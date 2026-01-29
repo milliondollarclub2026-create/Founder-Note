@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft } from 'lucide-react'
 
 /**
  * OnboardingTooltip - A positioned tooltip with arrow that points to the highlighted element.
+ * Premium burgundy design matching the welcome modal.
  * Automatically positions itself to avoid screen edges.
  */
 export const OnboardingTooltip = ({
@@ -94,7 +95,7 @@ export const OnboardingTooltip = ({
           break
       }
 
-      // Clamp to viewport
+      // Clamp to viewport with extra margin
       left = Math.max(padding, Math.min(left, viewportWidth - tooltipRect.width - padding))
       top = Math.max(padding, Math.min(top, viewportHeight - tooltipRect.height - padding))
 
@@ -132,20 +133,14 @@ export const OnboardingTooltip = ({
     <div
       ref={tooltipRef}
       style={tooltipStyle}
-      className="w-72 bg-[hsl(34_40%_97%)] border border-[hsl(355_48%_39%/0.15)] rounded-2xl shadow-2xl animate-tooltip-enter"
+      className="w-[calc(100vw-32px)] sm:w-72 max-w-72 bg-[hsl(355_48%_25%)] rounded-2xl shadow-2xl animate-tooltip-enter"
     >
       {/* Arrow */}
       <div style={arrowStyle} className="w-0 h-0">
         <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
           <path
             d="M12 0L24 12H0L12 0Z"
-            fill="hsl(34 40% 97%)"
-          />
-          <path
-            d="M12 1L22.5 11.5H1.5L12 1Z"
-            stroke="hsl(355 48% 39% / 0.15)"
-            strokeWidth="1"
-            fill="none"
+            fill="hsl(355 48% 25%)"
           />
         </svg>
       </div>
@@ -160,26 +155,26 @@ export const OnboardingTooltip = ({
                 key={i}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                   i < stepNumber
-                    ? 'bg-[hsl(355_48%_39%)]'
+                    ? 'bg-white'
                     : i === stepNumber
-                    ? 'bg-[hsl(355_48%_39%)] scale-125'
-                    : 'bg-[hsl(355_48%_39%/0.2)]'
+                    ? 'bg-white scale-125'
+                    : 'bg-white/30'
                 }`}
               />
             ))}
           </div>
-          <span className="text-[10px] font-medium text-[hsl(355_48%_39%/0.5)] uppercase tracking-wider ml-auto">
+          <span className="text-[10px] font-medium text-white/50 uppercase tracking-wider ml-auto">
             {stepNumber + 1} of {totalSteps}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-semibold text-[hsl(355_30%_15%)] mb-1.5 leading-tight">
+        <h3 className="text-base font-semibold text-white mb-1.5 leading-tight">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="text-[13px] text-[hsl(355_15%_45%)] leading-relaxed mb-4">
+        <p className="text-[13px] text-white/75 leading-relaxed mb-4">
           {description}
         </p>
 
@@ -188,7 +183,7 @@ export const OnboardingTooltip = ({
           {stepNumber > 0 && (
             <button
               onClick={onPrev}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[hsl(355_15%_45%)] hover:text-[hsl(355_30%_25%)] transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white/60 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-3 h-3" />
               Back
@@ -196,13 +191,13 @@ export const OnboardingTooltip = ({
           )}
           <button
             onClick={onSkip}
-            className="text-xs text-[hsl(355_15%_45%/0.6)] hover:text-[hsl(355_15%_45%)] transition-colors"
+            className="text-xs text-white/40 hover:text-white/70 transition-colors"
           >
             Skip tour
           </button>
           <button
             onClick={onNext}
-            className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-[hsl(355_48%_39%)] text-white text-xs font-medium rounded-lg hover:bg-[hsl(355_48%_35%)] transition-colors shadow-sm"
+            className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-white text-[hsl(355_48%_25%)] text-xs font-semibold rounded-lg hover:bg-white/95 transition-colors shadow-sm"
           >
             {stepNumber === totalSteps - 1 ? 'Finish' : 'Next'}
             <ArrowRight className="w-3 h-3" />

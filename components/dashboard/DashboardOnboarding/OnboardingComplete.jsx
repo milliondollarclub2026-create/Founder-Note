@@ -1,10 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Mic, Check, Sparkles, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+
+// Premium Microphone Icon
+const MicrophoneIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="2" width="6" height="11" rx="3" />
+    <path d="M5 10a7 7 0 0 0 14 0" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+  </svg>
+)
 
 /**
  * OnboardingComplete - Celebration modal with CTA to start recording.
+ * Premium burgundy design matching the welcome modal.
  */
 export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
   const [isVisible, setIsVisible] = useState(false)
@@ -39,7 +50,7 @@ export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-[hsl(20_10%_8%/0.7)] backdrop-blur-sm"
+        className="absolute inset-0 bg-[hsl(20_10%_8%/0.75)] backdrop-blur-sm"
         onClick={() => handleClose(onClose)}
       />
 
@@ -54,11 +65,11 @@ export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
                 left: `${10 + Math.random() * 80}%`,
                 top: '-10px',
                 backgroundColor: [
-                  'hsl(355 48% 39%)',
-                  'hsl(34 70% 60%)',
-                  'hsl(355 48% 55%)',
-                  'hsl(34 40% 80%)',
-                  'hsl(355 30% 70%)'
+                  'hsl(355 48% 50%)',
+                  'hsl(34 70% 70%)',
+                  'hsl(355 48% 65%)',
+                  'hsl(34 40% 85%)',
+                  'white'
                 ][i % 5],
                 animationDelay: `${Math.random() * 0.5}s`,
                 animationDuration: `${2 + Math.random() * 2}s`,
@@ -71,62 +82,58 @@ export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-md bg-[hsl(34_40%_97%)] rounded-3xl shadow-2xl overflow-hidden ${
+        className={`relative w-full max-w-md bg-[hsl(355_48%_25%)] rounded-3xl shadow-2xl overflow-hidden ${
           isExiting ? 'animate-modal-exit' : 'animate-modal-enter'
         }`}
       >
         {/* Close button */}
         <button
           onClick={() => handleClose(onClose)}
-          className="absolute top-4 right-4 p-2 rounded-full text-[hsl(355_15%_45%/0.5)] hover:text-[hsl(355_15%_45%)] hover:bg-[hsl(355_48%_39%/0.05)] transition-colors z-10"
+          className="absolute top-4 right-4 p-2 rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors z-10"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Content */}
-        <div className="px-8 pt-10 pb-8 text-center">
-          {/* Success icon */}
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            {/* Rings */}
-            <div className="absolute inset-0 rounded-full bg-[hsl(355_48%_39%/0.1)] animate-ring-1" />
-            <div className="absolute inset-2 rounded-full bg-[hsl(355_48%_39%/0.15)] animate-ring-2" />
-            <div className="absolute inset-4 rounded-full bg-[hsl(355_48%_39%/0.2)] animate-ring-3" />
+        {/* Content - responsive padding */}
+        <div className="px-6 sm:px-10 pt-10 sm:pt-12 pb-8 sm:pb-10 text-center">
+          {/* Success icon - responsive sizing */}
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-5 sm:mb-6">
+            {/* Pulsing rings */}
+            <div className="absolute inset-0 rounded-full bg-white/10 animate-ring-1" />
+            <div className="absolute inset-1.5 sm:inset-2 rounded-full bg-white/15 animate-ring-2" />
+            <div className="absolute inset-3 sm:inset-4 rounded-full bg-white/20 animate-ring-3" />
 
             {/* Center icon */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-[hsl(355_48%_39%)] flex items-center justify-center shadow-lg animate-icon-pop">
-                <Check className="w-7 h-7 text-white stroke-[3]" />
+              <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white flex items-center justify-center shadow-lg animate-icon-pop">
+                <Check className="w-5 h-5 sm:w-7 sm:h-7 text-[hsl(355_48%_25%)] stroke-[3]" />
               </div>
             </div>
-
-            {/* Sparkles */}
-            <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-[hsl(355_48%_50%)] animate-sparkle-1" />
-            <Sparkles className="absolute -bottom-1 -left-2 w-4 h-4 text-[hsl(34_70%_55%)] animate-sparkle-2" />
           </div>
 
-          <h2 className="text-2xl font-bold text-[hsl(355_30%_15%)] mb-2">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight mb-2">
             You're all set!
           </h2>
-          <p className="text-[15px] text-[hsl(355_15%_45%)] leading-relaxed mb-8 max-w-[280px] mx-auto">
+          <p className="text-sm sm:text-[15px] text-white/75 leading-relaxed mb-6 sm:mb-8 max-w-[260px] sm:max-w-[280px] mx-auto">
             Your dashboard is ready. Record your first voice note and watch the magic happen.
           </p>
 
-          {/* CTA */}
+          {/* CTA - responsive sizing */}
           <button
             onClick={() => handleClose(onStartRecording)}
-            className="group relative w-full py-4 px-6 bg-[hsl(355_48%_39%)] text-white font-medium rounded-xl hover:bg-[hsl(355_48%_35%)] transition-all shadow-xl shadow-[hsl(355_48%_39%/0.3)] overflow-hidden"
+            className="group relative w-full py-3.5 sm:py-4 px-6 bg-white text-[hsl(355_48%_25%)] font-semibold rounded-xl hover:bg-white/95 active:scale-[0.98] transition-all shadow-lg overflow-hidden"
           >
             {/* Shimmer effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(355_48%_25%/0.1)] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
             <span className="relative flex items-center justify-center gap-2">
-              <Mic className="w-5 h-5" />
+              <MicrophoneIcon />
               Record Your First Note
             </span>
           </button>
 
-          <p className="mt-4 text-xs text-[hsl(355_15%_45%/0.5)]">
-            Tip: Say <span className="font-medium">"Hey Remy"</span> anytime to chat with your AI assistant
+          <p className="mt-4 sm:mt-5 text-[11px] sm:text-xs text-white/50">
+            Tip: Say <span className="font-medium text-white/70">"Hey Remy"</span> anytime to chat with your AI assistant
           </p>
         </div>
       </div>
@@ -177,14 +184,6 @@ export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
           50% { transform: scale(1.15); }
           100% { transform: scale(1); }
         }
-        @keyframes sparkle-1 {
-          0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-          50% { opacity: 0.5; transform: scale(0.8) rotate(15deg); }
-        }
-        @keyframes sparkle-2 {
-          0%, 100% { opacity: 0.8; transform: scale(1) rotate(0deg); }
-          50% { opacity: 0.4; transform: scale(0.7) rotate(-15deg); }
-        }
         @keyframes confetti {
           0% {
             transform: translateY(0) rotate(0deg);
@@ -204,8 +203,6 @@ export const OnboardingComplete = ({ onStartRecording, onClose, isOpen }) => {
         .animate-ring-2 { animation: ring-2 2s ease-in-out infinite 0.15s; }
         .animate-ring-3 { animation: ring-3 2s ease-in-out infinite 0.3s; }
         .animate-icon-pop { animation: icon-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
-        .animate-sparkle-1 { animation: sparkle-1 1.5s ease-in-out infinite; }
-        .animate-sparkle-2 { animation: sparkle-2 1.8s ease-in-out infinite 0.3s; }
         .animate-confetti { animation: confetti linear forwards; }
       `}</style>
     </div>
