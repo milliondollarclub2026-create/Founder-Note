@@ -450,6 +450,33 @@ export default function Dashboard() {
     }
   }
 
+  // Cancel Subscription handler
+  const handleCancelSubscription = async () => {
+    try {
+      const response = await fetch('/api/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription')
+      }
+
+      // Sign out locally and redirect
+      const supabase = createClient()
+      await supabase.auth.signOut()
+
+      toast.success('Subscription cancelled. You can resubscribe anytime.')
+      router.push('/auth')
+    } catch (error) {
+      console.error('Cancel subscription error:', error)
+      toast.error(error.message || 'Failed to cancel subscription')
+      throw error
+    }
+  }
+
   // Delete Account handler
   const handleDeleteAccount = async () => {
     try {
@@ -1821,6 +1848,7 @@ export default function Dashboard() {
         usage={usage}
         onClearData={handleClearAllData}
         onDeleteAccount={handleDeleteAccount}
+        onCancelSubscription={handleCancelSubscription}
       />
       <CreateTagModal open={isCreateTagOpen} onClose={() => setIsCreateTagOpen(false)} onCreate={createTag} />
       <CreateFolderModal open={isCreateFolderOpen} onClose={() => setIsCreateFolderOpen(false)} onCreate={createFolder} />
