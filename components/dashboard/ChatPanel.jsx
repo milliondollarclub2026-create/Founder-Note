@@ -287,71 +287,94 @@ export const ContextAwareChatBar = ({ contextScope, isExpanded, onToggle, noteCo
         </div>
       </ScrollArea>
 
-      {/* Premium Suggestion Pills Sleeve */}
-      <div className="border-t border-border/50">
-        {/* Collapsed state - minimal toggle */}
+      {/* ═══ The Velvet Tray ═══ Premium Suggestion Sleeve */}
+      <div className="relative">
+        {/* Garnet accent line - the elegant separator */}
+        <div className="h-px bg-gradient-to-r from-transparent via-[hsl(355_48%_39%/0.2)] to-transparent" />
+
+        {/* Collapsed state - The Mysterious Bar */}
         {messages.length > 0 && !isPillsExpanded && (
           <button
             onClick={() => setIsPillsExpanded(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-2 text-[11px] text-muted-foreground/70 hover:text-muted-foreground hover:bg-secondary/30 transition-all duration-200"
+            className="group relative w-full h-10 flex items-center justify-center overflow-hidden bg-gradient-to-b from-[hsl(34_35%_96%)] to-[hsl(34_30%_94%)] hover:from-[hsl(34_38%_97%)] hover:to-[hsl(34_32%_95%)] transition-all duration-300"
           >
-            <Sparkles className="w-3 h-3" />
-            <span className="font-medium">Quick prompts</span>
-            <ChevronUp className="w-3 h-3 ml-0.5" />
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(355_48%_39%/0.06)] to-transparent sleeve-shimmer" />
+            </div>
+            {/* Centered gemstone symbol */}
+            <div className="flex items-center gap-2 text-[hsl(355_48%_39%/0.4)] group-hover:text-[hsl(355_48%_39%/0.7)] transition-colors duration-300">
+              <span className="text-xs tracking-[0.3em] font-light">✦ ✦ ✦</span>
+            </div>
+            {/* Subtle lift indicator */}
+            <ChevronUp className="absolute right-4 w-3.5 h-3.5 text-[hsl(355_48%_39%/0.25)] group-hover:text-[hsl(355_48%_39%/0.5)] group-hover:-translate-y-0.5 transition-all duration-300" />
           </button>
         )}
 
-        {/* Expanded pills container */}
+        {/* Expanded state - The Velvet Tray */}
         <div
-          className="overflow-hidden transition-all duration-300 ease-out"
+          className={`overflow-hidden transition-all duration-350 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            isPillsExpanded ? 'sleeve-expand' : 'sleeve-collapse'
+          }`}
           style={{
-            maxHeight: isPillsExpanded ? '140px' : '0',
-            opacity: isPillsExpanded ? 1 : 0
+            maxHeight: isPillsExpanded ? '160px' : '0',
           }}
         >
-          {/* Header with collapse button */}
-          {messages.length > 0 && isPillsExpanded && (
-            <div className="flex items-center justify-between px-4 pt-2.5 pb-1">
-              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">Quick prompts</span>
+          {/* Tray background with subtle warmth gradient */}
+          <div className="relative bg-gradient-to-b from-[hsl(34_35%_96%)] to-[hsl(34_30%_94%)] px-4 py-4">
+            {/* Collapse handle - top right, minimal */}
+            {messages.length > 0 && (
               <button
                 onClick={() => setIsPillsExpanded(false)}
-                className="p-1 rounded-md text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary/50 transition-colors"
+                className="absolute top-2 right-2 p-1.5 rounded-full text-[hsl(355_48%_39%/0.3)] hover:text-[hsl(355_48%_39%/0.6)] hover:bg-[hsl(355_48%_39%/0.05)] transition-all duration-200"
               >
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
-            </div>
-          )}
+            )}
 
-          {/* Pills - horizontal scroll on mobile, wrap on desktop */}
-          <div className="px-4 pb-3 pt-1">
-            <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Pills Grid - Auto-fit magic */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(contextScope.type === 'note' ? [
                 { label: 'Summarize', prompt: 'Summarize this note for me' },
-                { label: 'Key takeaways', prompt: 'What are the key takeaways from this note?' },
-                { label: 'Action items', prompt: 'List the action items from this note' },
-                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Takeaways', prompt: 'What are the key takeaways from this note?' },
+                { label: 'Actions', prompt: 'List the action items from this note' },
+                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
               ] : contextScope.type === 'folder' ? [
-                { label: 'Summarize folder', prompt: `Summarize the notes in ${contextScope.folder}` },
-                { label: 'Common themes', prompt: 'What are the common themes across these notes?' },
-                { label: 'Open questions', prompt: 'What open questions are there across these notes?' },
-                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Summarize', prompt: `Summarize the notes in ${contextScope.folder}` },
+                { label: 'Themes', prompt: 'What are the common themes across these notes?' },
+                { label: 'Questions', prompt: 'What open questions are there across these notes?' },
+                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
               ] : contextScope.type === 'tag' ? [
-                { label: `About #${contextScope.tag}`, prompt: `What have I said about ${contextScope.tag}?` },
-                { label: 'Find patterns', prompt: 'What patterns do you see in these notes?' },
-                { label: 'Action items', prompt: 'List all action items from these notes' },
-                { label: 'Remember...', prompt: 'Hey Remy, remember this: ' },
+                { label: 'Insights', prompt: `What have I said about ${contextScope.tag}?` },
+                { label: 'Patterns', prompt: 'What patterns do you see in these notes?' },
+                { label: 'Actions', prompt: 'List all action items from these notes' },
+                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
               ] : [
-                { label: 'Recent highlights', prompt: 'What are the highlights from my recent notes?' },
-                { label: 'Open actions', prompt: 'What action items are still open?' },
-                { label: 'Key themes', prompt: 'What are the key themes across my notes?' },
-                { label: "Don't forget...", prompt: "Remy, don't forget " },
+                { label: 'Highlights', prompt: 'What are the highlights from my recent notes?' },
+                { label: 'Actions', prompt: 'What action items are still open?' },
+                { label: 'Themes', prompt: 'What are the key themes across my notes?' },
+                { label: 'Remember', prompt: 'Hey Remy, remember this: ' },
               ]).map((pill, i) => (
                 <button
                   key={i}
                   onClick={() => setInput(pill.prompt)}
-                  className="flex-shrink-0 text-[11px] px-3.5 py-2 rounded-lg bg-secondary/60 text-foreground/70 border border-border/40 hover:bg-secondary hover:text-foreground hover:border-border/60 hover:shadow-sm active:scale-[0.97] transition-all duration-150"
+                  className="velvet-pill group relative px-3 py-2.5 rounded-xl text-[12px] font-medium tracking-wide
+                    bg-[hsl(34_40%_98%)] text-[hsl(355_30%_35%)]
+                    border border-[hsl(34_25%_85%)]
+                    shadow-[inset_0_1px_0_hsl(0_0%_100%/0.7),0_1px_2px_hsl(355_30%_20%/0.04)]
+                    hover:bg-white hover:border-[hsl(355_48%_39%/0.25)] hover:text-[hsl(355_48%_39%)]
+                    hover:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.9),0_4px_12px_hsl(355_48%_39%/0.1),0_0_0_1px_hsl(355_48%_39%/0.05)]
+                    hover:-translate-y-0.5
+                    active:translate-y-0 active:scale-[0.98] active:bg-[hsl(355_48%_39%)] active:text-white active:border-[hsl(355_48%_35%)]
+                    transition-all duration-200 ease-out
+                    overflow-hidden"
+                  style={{
+                    animationDelay: isPillsExpanded ? `${i * 40}ms` : '0ms',
+                  }}
                 >
-                  {pill.label}
+                  {/* Inner highlight on hover */}
+                  <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 bg-gradient-to-b from-[hsl(355_48%_39%/0.02)] to-transparent transition-opacity duration-200" />
+                  <span className="relative">{pill.label}</span>
                 </button>
               ))}
             </div>

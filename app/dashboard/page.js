@@ -462,6 +462,12 @@ export default function Dashboard() {
 
   // Cancel Subscription handler
   const handleCancelSubscription = async () => {
+    // Fallback timer: force redirect after 4 seconds no matter what
+    const fallbackTimer = setTimeout(() => {
+      console.warn('Cancel subscription fallback triggered - forcing redirect')
+      window.location.href = '/auth'
+    }, 4000)
+
     try {
       const response = await fetch('/api/subscription/cancel', {
         method: 'POST',
@@ -471,15 +477,29 @@ export default function Dashboard() {
       const data = await response.json()
 
       if (!response.ok) {
+        clearTimeout(fallbackTimer)
         throw new Error(data.error || 'Failed to cancel subscription')
       }
 
-      // Sign out and redirect — don't await signOut to avoid hanging
+      // Success - show toast
       toast.success('Subscription cancelled. You can resubscribe anytime.')
+
+      // Attempt graceful sign out (with timeout)
       const supabase = createClient()
-      supabase.auth.signOut().catch(() => {})
-      router.push('/auth')
+      try {
+        await Promise.race([
+          supabase.auth.signOut(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Sign out timeout')), 2000))
+        ])
+      } catch (signOutError) {
+        console.warn('Sign out failed or timed out:', signOutError)
+      }
+
+      // Clear fallback and do hard redirect
+      clearTimeout(fallbackTimer)
+      window.location.href = '/auth'
     } catch (error) {
+      clearTimeout(fallbackTimer)
       console.error('Cancel subscription error:', error)
       toast.error(error.message || 'Failed to cancel subscription')
       throw error

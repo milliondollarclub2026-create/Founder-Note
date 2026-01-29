@@ -78,9 +78,21 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true)
+
+    // Safety timeout: if nothing happens after 8 seconds, reset state
+    // (The parent handler has a 4s fallback redirect, so 8s means something went very wrong)
+    const safetyTimer = setTimeout(() => {
+      console.warn('Cancel subscription safety timeout triggered')
+      setIsCancelling(false)
+      setShowCancelConfirm(false)
+    }, 8000)
+
     try {
       await onCancelSubscription()
+      // If we get here, parent handled it (redirect should happen)
+      clearTimeout(safetyTimer)
     } catch (error) {
+      clearTimeout(safetyTimer)
       console.error('Cancel subscription error:', error)
       setIsCancelling(false)
     }
