@@ -23,21 +23,21 @@ const TOUR_STEPS = [
     selector: '[data-onboarding="mic-button"]',
     title: 'Record a voice note',
     description: 'Tap the mic to capture your thoughts. Just speak naturally — we\'ll handle the rest.',
-    position: 'top'
+    position: 'auto' // Auto-detect best position for any screen size
   },
   {
     id: 'chat-bar',
     selector: '[data-onboarding="chat-bar"]',
     title: 'Meet Remy, your AI assistant',
     description: 'Ask questions about your notes, get summaries, or say "Hey Remy" to save important thoughts.',
-    position: 'top'
+    position: 'auto' // Auto-detect best position for any screen size
   },
   {
     id: 'view-toggle',
     selector: '[data-onboarding="view-toggle"]',
     title: 'Switch your view',
     description: 'Toggle between your Notes list and Brain Dump for a synthesized overview of your ideas.',
-    position: 'bottom'
+    position: 'auto' // Auto-detect best position for any screen size
   },
   {
     id: 'sidebar',
@@ -52,7 +52,7 @@ const TOUR_STEPS = [
     selector: '[data-onboarding="actions"]',
     title: 'Your action items',
     description: 'Tasks and to-dos are automatically extracted from your notes and appear here.',
-    position: 'bottom',
+    position: 'auto', // Auto-detect best position for any screen size
     optional: true // Skip if element doesn't exist (e.g., no todos for new users)
   }
 ]

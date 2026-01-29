@@ -104,8 +104,20 @@ export const OnboardingTooltip = ({
       }
 
       // Clamp to viewport with extra margin
+      const originalLeft = left
       left = Math.max(padding, Math.min(left, viewportWidth - tooltipRect.width - padding))
       top = Math.max(padding, Math.min(top, viewportHeight - tooltipRect.height - padding))
+
+      // Recalculate arrow horizontal position if tooltip was shifted horizontally
+      // so the arrow still points at the target center
+      const horizontalShift = originalLeft - left
+      if (pos === 'top' || pos === 'bottom') {
+        // Adjust arrow to still point at target center
+        const targetCenterX = targetRect.left + targetRect.width / 2
+        const newArrowLeft = targetCenterX - left - arrowSize
+        // Clamp arrow to stay within tooltip bounds (with padding)
+        arrowLeft = Math.max(16, Math.min(newArrowLeft, tooltipRect.width - 40))
+      }
 
       setTooltipStyle({
         position: 'fixed',
