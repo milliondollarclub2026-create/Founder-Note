@@ -38,43 +38,6 @@ const createClient = () => {
 
 // Constants
 const TAG_COLORS = ['sapphire', 'emerald', 'amber', 'rose', 'slate', 'violet']
-const DEFAULT_TAGS = [
-  { name: 'important', color: 'rose' },
-  { name: 'idea', color: 'amber' },
-  { name: 'follow-up', color: 'emerald' },
-  { name: 'meeting', color: 'sapphire' },
-]
-const DEFAULT_FOLDERS = ['Ideas', 'Meetings', 'Projects']
-
-const getStoredTags = () => {
-  if (typeof window === 'undefined') return DEFAULT_TAGS
-  const stored = localStorage.getItem('foundernote_tags')
-  return stored ? JSON.parse(stored) : DEFAULT_TAGS
-}
-
-const saveStoredTags = (tags) => {
-  if (typeof window !== 'undefined') localStorage.setItem('foundernote_tags', JSON.stringify(tags))
-}
-
-const getStoredFolders = () => {
-  if (typeof window === 'undefined') return DEFAULT_FOLDERS
-  const stored = localStorage.getItem('foundernote_folders')
-  return stored ? JSON.parse(stored) : DEFAULT_FOLDERS
-}
-
-const saveStoredFolders = (folders) => {
-  if (typeof window !== 'undefined') localStorage.setItem('foundernote_folders', JSON.stringify(folders))
-}
-
-const getStoredStarredFolders = () => {
-  if (typeof window === 'undefined') return []
-  const stored = localStorage.getItem('foundernote_starred_folders')
-  return stored ? JSON.parse(stored) : []
-}
-
-const saveStoredStarredFolders = (starred) => {
-  if (typeof window !== 'undefined') localStorage.setItem('foundernote_starred_folders', JSON.stringify(starred))
-}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -95,8 +58,8 @@ export default function Dashboard() {
 
   const [notes, setNotes] = useState([])
   const [todos, setTodos] = useState([])
-  const [allTags, setAllTags] = useState(getStoredTags)
-  const [folders, setFolders] = useState(getStoredFolders)
+  const [allTags, setAllTags] = useState([])
+  const [folders, setFolders] = useState([])
   const [selectedNote, setSelectedNote] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -106,7 +69,7 @@ export default function Dashboard() {
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false)
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [starredFolders, setStarredFolders] = useState(getStoredStarredFolders)
+  const [starredFolders, setStarredFolders] = useState([])
   const [renamingItem, setRenamingItem] = useState(null)
   const [renameValue, setRenameValue] = useState('')
   const [activeView, setActiveView] = useState(null) // null | 'completed'
@@ -177,17 +140,71 @@ export default function Dashboard() {
     checkAuth()
   }, [router])
 
-  // Hydrate tags/folders from localStorage after mount (SSR returns defaults)
+  // Fetch tags and folders from API
+  const fetchTagsAndFolders = async () => {
+    try {
+      const [tagsRes, foldersRes] = await Promise.all([
+        fetch('/api/tags'),
+        fetch('/api/folders')
+      ])
+
+      if (!tagsRes.ok || !foldersRes.ok) {
+        throw new Error('Failed to fetch tags/folders')
+      }
+
+      const tagsData = await tagsRes.json()
+      const foldersData = await foldersRes.json()
+
+      setAllTags(tagsData.tags || [])
+      const folderList = foldersData.folders || []
+      setFolders(folderList.map(f => f.name))
+      setStarredFolders(folderList.filter(f => f.starred).map(f => f.name))
+    } catch (error) {
+      console.error('Failed to fetch tags/folders:', error)
+    }
+  }
+
+  // One-time migration from localStorage to database
   useEffect(() => {
-    const storedTags = localStorage.getItem('foundernote_tags')
-    if (storedTags !== null) setAllTags(JSON.parse(storedTags))
+    if (isAuthLoading || !authUser) return
 
-    const storedFolders = localStorage.getItem('foundernote_folders')
-    if (storedFolders !== null) setFolders(JSON.parse(storedFolders))
+    const migrateLocalData = async () => {
+      const localTags = localStorage.getItem('foundernote_tags')
+      const localFolders = localStorage.getItem('foundernote_folders')
+      const localStarred = localStorage.getItem('foundernote_starred_folders')
 
-    const storedStarred = localStorage.getItem('foundernote_starred_folders')
-    if (storedStarred !== null) setStarredFolders(JSON.parse(storedStarred))
-  }, [])
+      // Only migrate if there's localStorage data
+      if (localTags || localFolders || localStarred) {
+        try {
+          const res = await fetch('/api/migrate-local-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tags: localTags ? JSON.parse(localTags) : [],
+              folders: localFolders ? JSON.parse(localFolders) : [],
+              starredFolders: localStarred ? JSON.parse(localStarred) : []
+            })
+          })
+
+          // Only clear localStorage if migration succeeded
+          if (res.ok) {
+            localStorage.removeItem('foundernote_tags')
+            localStorage.removeItem('foundernote_folders')
+            localStorage.removeItem('foundernote_starred_folders')
+          } else {
+            console.error('Migration failed:', await res.text())
+          }
+        } catch (error) {
+          console.error('Migration failed:', error)
+        }
+      }
+
+      // Fetch from API (whether we migrated or not)
+      await fetchTagsAndFolders()
+    }
+
+    migrateLocalData()
+  }, [isAuthLoading, authUser])
 
   // Fetch data after auth is confirmed
   useEffect(() => {
@@ -564,61 +581,6 @@ export default function Dashboard() {
     ).slice(0, 8)
   }, [searchQuery, notes])
 
-  // Sync tags from notes to sidebar - discover tags from backend data
-  useEffect(() => {
-    if (notes.length === 0) return
-
-    // Extract all unique tags from notes
-    const tagsFromNotes = new Set()
-    notes.forEach(n => {
-      (n.tags || []).forEach(tag => tagsFromNotes.add(tag))
-    })
-
-    // Merge with existing tags (preserving colors)
-    let needsUpdate = false
-    const updatedTags = [...allTags]
-
-    tagsFromNotes.forEach(tagName => {
-      if (!updatedTags.find(t => t.name === tagName)) {
-        // New tag discovered from backend - assign default color
-        updatedTags.push({ name: tagName, color: 'slate' })
-        needsUpdate = true
-      }
-    })
-
-    if (needsUpdate) {
-      setAllTags(updatedTags)
-      saveStoredTags(updatedTags)
-    }
-  }, [notes])
-
-  // Similarly, sync folders from notes
-  useEffect(() => {
-    if (notes.length === 0) return
-
-    // Extract all unique folders from notes
-    const foldersFromNotes = new Set()
-    notes.forEach(n => {
-      if (n.folder) foldersFromNotes.add(n.folder)
-    })
-
-    // Merge with existing folders
-    let needsUpdate = false
-    const updatedFolders = [...folders]
-
-    foldersFromNotes.forEach(folderName => {
-      if (!updatedFolders.includes(folderName)) {
-        updatedFolders.push(folderName)
-        needsUpdate = true
-      }
-    })
-
-    if (needsUpdate) {
-      setFolders(updatedFolders)
-      saveStoredFolders(updatedFolders)
-    }
-  }, [notes])
-
   // Fetch all notes (unfiltered) - filtering happens in displayNotes
   const fetchNotes = async () => {
     try {
@@ -821,11 +783,18 @@ export default function Dashboard() {
     setNotes(prev => prev.map(n => n.id !== noteId ? n : { ...n, tags: newTags }))
     if (selectedNote?.id === noteId) setSelectedNote(prev => ({ ...prev, tags: newTags }))
 
-    // Add tag to sidebar if it's new
+    // Add tag to sidebar if it's new (will be persisted via API)
     if (!allTags.find(t => t.name === tag.name)) {
       const updatedTags = [...allTags, tag]
       setAllTags(updatedTags)
-      saveStoredTags(updatedTags)
+      // Persist to backend (fire-and-forget - doesn't block note update)
+      fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: tag.name, color: tag.color })
+      }).then(res => {
+        if (!res.ok) console.error('Failed to persist tag:', tag.name)
+      }).catch(console.error)
     }
 
     // Persist to backend
@@ -913,11 +882,18 @@ export default function Dashboard() {
     setNotes(prev => prev.map(n => n.id === noteId ? { ...n, folder } : n))
     if (selectedNote?.id === noteId) setSelectedNote(prev => ({ ...prev, folder }))
 
-    // Add folder to sidebar if it's new
+    // Add folder to sidebar if it's new (will be persisted via API)
     if (!folders.includes(folder)) {
       const newFolders = [...folders, folder]
       setFolders(newFolders)
-      saveStoredFolders(newFolders)
+      // Persist to backend (fire-and-forget - doesn't block note update)
+      fetch('/api/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: folder, starred: false })
+      }).then(res => {
+        if (!res.ok) console.error('Failed to persist folder:', folder)
+      }).catch(console.error)
     }
 
     // Persist to backend
@@ -995,28 +971,64 @@ export default function Dashboard() {
     }
   }
 
-  const createTag = (tag) => {
+  const createTag = async (tag) => {
     if (!allTags.find(t => t.name === tag.name)) {
-      const newTags = [...allTags, tag]; setAllTags(newTags); saveStoredTags(newTags)
-      // Silent - no toast for tag operations
+      const previousTags = allTags
+      setAllTags(prev => [...prev, tag])
+
+      try {
+        const res = await fetch('/api/tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: tag.name, color: tag.color })
+        })
+        if (!res.ok) throw new Error('Failed to create tag')
+      } catch (error) {
+        console.error('Failed to create tag:', error)
+        setAllTags(previousTags)
+      }
     }
   }
 
-  const createFolder = (name) => {
+  const createFolder = async (name) => {
     if (!folders.includes(name)) {
-      const newFolders = [...folders, name]; setFolders(newFolders); saveStoredFolders(newFolders)
-      // Silent - no toast for folder operations
+      const previousFolders = folders
+      setFolders(prev => [...prev, name])
+
+      try {
+        const res = await fetch('/api/folders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, starred: false })
+        })
+        if (!res.ok) throw new Error('Failed to create folder')
+      } catch (error) {
+        console.error('Failed to create folder:', error)
+        setFolders(previousFolders)
+      }
     }
   }
 
-  const toggleStarFolder = (folderName) => {
-    setStarredFolders(prev => {
-      const newStarred = prev.includes(folderName)
-        ? prev.filter(f => f !== folderName)
-        : [...prev, folderName]
-      saveStoredStarredFolders(newStarred)
-      return newStarred
-    })
+  const toggleStarFolder = async (folderName) => {
+    const isCurrentlyStarred = starredFolders.includes(folderName)
+    const previousStarred = starredFolders
+    const newStarred = isCurrentlyStarred
+      ? starredFolders.filter(f => f !== folderName)
+      : [...starredFolders, folderName]
+
+    setStarredFolders(newStarred)
+
+    try {
+      const res = await fetch(`/api/folders/${encodeURIComponent(folderName)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ starred: !isCurrentlyStarred })
+      })
+      if (!res.ok) throw new Error('Failed to toggle star')
+    } catch (error) {
+      console.error('Failed to toggle star:', error)
+      setStarredFolders(previousStarred)
+    }
   }
 
   const startRenaming = (type, name) => {
@@ -1024,43 +1036,59 @@ export default function Dashboard() {
     setRenameValue(name)
   }
 
-  const confirmRename = () => {
+  const confirmRename = async () => {
     if (!renamingItem || !renameValue.trim()) { setRenamingItem(null); return }
 
+    const oldName = renamingItem.name
+    const newName = renameValue.trim()
+
     if (renamingItem.type === 'folder') {
-      const oldName = renamingItem.name
-      const newName = renameValue.trim()
       if (oldName === newName || folders.includes(newName)) { setRenamingItem(null); return }
 
+      // Store previous state for rollback
+      const previousFolders = [...folders]
+      const previousStarred = [...starredFolders]
+
+      // Optimistic update
       const newFolders = folders.map(f => f === oldName ? newName : f)
       setFolders(newFolders)
-      saveStoredFolders(newFolders)
 
       if (starredFolders.includes(oldName)) {
         const newStarred = starredFolders.map(f => f === oldName ? newName : f)
         setStarredFolders(newStarred)
-        saveStoredStarredFolders(newStarred)
       }
 
       setNotes(prev => prev.map(n => n.folder === oldName ? { ...n, folder: newName } : n))
       if (selectedFolder === oldName) setSelectedFolder(newName)
 
-      notes.filter(n => n.folder === oldName).forEach(n => {
-        fetch(`/api/notes/${n.id}`, {
+      // API handles cascading updates to notes, intents, and brain_dump_cache
+      try {
+        const res = await fetch(`/api/folders/${encodeURIComponent(oldName)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ folder: newName })
-        }).catch(console.error)
-      })
+          body: JSON.stringify({ newName })
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to rename folder')
+        }
+      } catch (error) {
+        console.error('Failed to rename folder:', error)
+        // Revert on error
+        setFolders(previousFolders)
+        setStarredFolders(previousStarred)
+        fetchNotes()
+      }
       setBrainDumpStale(true)
     } else if (renamingItem.type === 'tag') {
-      const oldName = renamingItem.name
-      const newName = renameValue.trim()
       if (oldName === newName || allTags.find(t => t.name === newName)) { setRenamingItem(null); return }
 
+      // Store previous state for rollback
+      const previousTags = [...allTags]
+
+      // Optimistic update
       const newTags = allTags.map(t => t.name === oldName ? { ...t, name: newName } : t)
       setAllTags(newTags)
-      saveStoredTags(newTags)
 
       setNotes(prev => prev.map(n => {
         if (n.tags?.includes(oldName)) {
@@ -1070,13 +1098,23 @@ export default function Dashboard() {
       }))
       if (selectedTag === oldName) setSelectedTag(newName)
 
-      notes.filter(n => n.tags?.includes(oldName)).forEach(n => {
-        fetch(`/api/notes/${n.id}`, {
+      // API handles cascading updates to notes, intents, and brain_dump_cache
+      try {
+        const res = await fetch(`/api/tags/${encodeURIComponent(oldName)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tags: (n.tags || []).map(t => t === oldName ? newName : t) })
-        }).catch(console.error)
-      })
+          body: JSON.stringify({ newName })
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to rename tag')
+        }
+      } catch (error) {
+        console.error('Failed to rename tag:', error)
+        // Revert on error
+        setAllTags(previousTags)
+        fetchNotes()
+      }
       setBrainDumpStale(true)
     }
 
@@ -1084,54 +1122,51 @@ export default function Dashboard() {
   }
 
   const deleteFolder = (folderName) => {
+    // Store previous state for rollback before setTimeout captures stale closure
+    const previousFolders = [...folders]
+    const previousStarred = [...starredFolders]
+
     // Defer state changes so the dropdown portal can unmount cleanly
     setTimeout(async () => {
-      const newFolders = folders.filter(f => f !== folderName)
-      setFolders(newFolders)
-      saveStoredFolders(newFolders)
-
-      if (starredFolders.includes(folderName)) {
-        const newStarred = starredFolders.filter(f => f !== folderName)
-        setStarredFolders(newStarred)
-        saveStoredStarredFolders(newStarred)
-      }
-
+      // Optimistic update
+      setFolders(prev => prev.filter(f => f !== folderName))
+      setStarredFolders(prev => prev.filter(f => f !== folderName))
       if (selectedFolder === folderName) setSelectedFolder(null)
-
-      const affectedNotes = notes.filter(n => n.folder === folderName)
       setNotes(prev => prev.map(n => n.folder === folderName ? { ...n, folder: null } : n))
 
-      for (const n of affectedNotes) {
-        try {
-          const res = await fetch(`/api/notes/${n.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ folder: null })
-          })
-          if (!res.ok) console.error('Failed to unassign note from folder:', await res.text())
-        } catch (error) {
-          console.error('Failed to unassign note from folder:', error)
+      // API handles cascading updates to notes, intents, and brain_dump_cache
+      try {
+        const res = await fetch(`/api/folders/${encodeURIComponent(folderName)}`, {
+          method: 'DELETE'
+        })
+        if (!res.ok) {
+          console.error('Failed to delete folder:', await res.text())
+          // Revert on error
+          setFolders(previousFolders)
+          setStarredFolders(previousStarred)
+          fetchNotes()
         }
+      } catch (error) {
+        console.error('Failed to delete folder:', error)
+        setFolders(previousFolders)
+        setStarredFolders(previousStarred)
+        fetchNotes()
       }
 
       setBrainDumpStale(true)
-      // Silent - no toast for folder operations
     }, 0)
   }
 
   const removeTagCompletely = (tagName) => {
+    // Store previous state for rollback before setTimeout captures stale closure
+    const previousTags = [...allTags]
+
     // Defer state changes so the dropdown portal can unmount cleanly
     setTimeout(async () => {
       if (selectedTag === tagName) setSelectedTag(null)
 
-      // Capture affected notes BEFORE updating state
-      const affectedNotes = notes.filter(n => n.tags?.includes(tagName))
-
-      // Update local state
-      const newTags = allTags.filter(t => t.name !== tagName)
-      setAllTags(newTags)
-      saveStoredTags(newTags)
-
+      // Optimistic update
+      setAllTags(prev => prev.filter(t => t.name !== tagName))
       setNotes(prev => prev.map(n => {
         if (n.tags?.includes(tagName)) {
           return { ...n, tags: n.tags.filter(t => t !== tagName) }
@@ -1139,25 +1174,24 @@ export default function Dashboard() {
         return n
       }))
 
-      // Sync each affected note with the backend
-      for (const n of affectedNotes) {
-        const updatedTags = (n.tags || []).filter(t => t !== tagName)
-        try {
-          const res = await fetch(`/api/notes/${n.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tags: updatedTags })
-          })
-          if (!res.ok) {
-            console.error('Failed to remove tag from note:', await res.text())
-          }
-        } catch (error) {
-          console.error('Failed to remove tag from note:', error)
+      // API handles cascading updates to notes, intents, and brain_dump_cache
+      try {
+        const res = await fetch(`/api/tags/${encodeURIComponent(tagName)}`, {
+          method: 'DELETE'
+        })
+        if (!res.ok) {
+          console.error('Failed to delete tag:', await res.text())
+          // Revert on error
+          setAllTags(previousTags)
+          fetchNotes()
         }
+      } catch (error) {
+        console.error('Failed to delete tag:', error)
+        setAllTags(previousTags)
+        fetchNotes()
       }
 
       setBrainDumpStale(true)
-      // Silent - no toast for tag operations
     }, 0)
   }
 
