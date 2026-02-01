@@ -114,15 +114,15 @@ function SubscribeContent() {
 
       setUser(user)
 
-      // Check if user is already subscribed or has chosen a plan
+      // Check if user is already subscribed or has seen this page
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('subscription_status, onboarding_completed, plan_name')
+        .select('subscription_status, onboarding_completed, subscription_page_seen')
         .eq('user_id', user.id)
         .maybeSingle()
 
-      if (profile?.subscription_status === 'active' || profile?.plan_name) {
-        // Already subscribed or has chosen a plan (including free), go to dashboard
+      if (profile?.subscription_status === 'active' || profile?.subscription_page_seen) {
+        // Already subscribed or has already seen subscribe page, go to dashboard
         router.push('/dashboard')
         return
       }
@@ -180,10 +180,10 @@ function SubscribeContent() {
       // Free plan - mark selection and go to dashboard
       if (planKey === 'free') {
         const supabase = createClient()
-        // Set plan_name to 'free' to indicate user has made their choice
+        // Mark that user has seen subscribe page and chosen free
         await supabase
           .from('user_profiles')
-          .update({ plan_name: 'free' })
+          .update({ subscription_page_seen: true })
           .eq('user_id', user.id)
 
         router.push('/dashboard')

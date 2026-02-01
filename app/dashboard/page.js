@@ -1970,13 +1970,15 @@ export default function Dashboard() {
       <CreateTagModal open={isCreateTagOpen} onClose={() => setIsCreateTagOpen(false)} onCreate={createTag} />
       <CreateFolderModal open={isCreateFolderOpen} onClose={() => setIsCreateFolderOpen(false)} onCreate={createFolder} />
 
-      {/* Dashboard Onboarding Tour */}
-      <DashboardOnboarding
-        userName={userProfile?.full_name || authUser?.user_metadata?.full_name}
-        isOnboardingComplete={userProfile?.dashboard_onboarding_completed === true}
-        onComplete={handleCompleteOnboarding}
-        onStartRecording={startRecording}
-      />
+      {/* Dashboard Onboarding Tour - only show once profile is loaded */}
+      {userProfile && (
+        <DashboardOnboarding
+          userName={userProfile?.full_name || authUser?.user_metadata?.full_name}
+          isOnboardingComplete={userProfile?.dashboard_onboarding_completed === true}
+          onComplete={handleCompleteOnboarding}
+          onStartRecording={startRecording}
+        />
+      )}
     </div>
   )
 }
