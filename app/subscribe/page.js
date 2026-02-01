@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { Sparkles, Loader2, Mic, Brain, Tag, MessageCircle, Zap, Shield, CreditCard, Calendar, Crown, Check } from 'lucide-react'
+import { Loader2, Mic, Brain, Tag, MessageCircle, Zap, Shield, CreditCard, Calendar, Crown, Check, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -16,35 +16,60 @@ const createClient = () => {
 }
 
 // Plan configurations
-const PLANS = {
-  pro: {
+const PLANS = [
+  {
+    key: 'free',
+    name: 'Free',
+    price: 0,
+    description: 'Get started with voice notes',
+    features: [
+      '5 notes per month',
+      '15 minutes transcription',
+      'AI transcription & summaries',
+      'Brain Dump synthesis',
+      'Remy AI assistant',
+      'Tags & folders',
+    ],
+    cta: 'Start Free',
+    highlighted: false,
+  },
+  {
+    key: 'pro',
     name: 'Pro',
     price: 14.99,
-    description: 'Everything you need to capture ideas',
+    description: 'More notes and recording time',
     features: [
-      { icon: Mic, text: '15 notes and 150 minutes per month' },
-      { icon: Sparkles, text: 'AI transcription and summaries' },
-      { icon: Brain, text: 'Brain Dump synthesis' },
-      { icon: MessageCircle, text: 'Remy AI assistant' },
-      { icon: Tag, text: 'Tags, folders, and search' },
-      { icon: Zap, text: 'Action items and follow-ups' },
+      '15 notes per month',
+      '150 minutes transcription',
+      'AI transcription & summaries',
+      'Brain Dump synthesis',
+      'Remy AI assistant',
+      'Tags & folders',
     ],
+    cta: 'Subscribe',
+    highlighted: true,
+    badge: 'Most Popular',
   },
-  plus: {
+  {
+    key: 'plus',
     name: 'Plus',
     price: 24.99,
-    description: 'For power users who need more',
+    description: 'Maximum limits + Google Calendar',
     features: [
-      { icon: Mic, text: '30 notes and 300 minutes per month' },
-      { icon: Sparkles, text: 'AI transcription and summaries' },
-      { icon: Brain, text: 'Brain Dump synthesis' },
-      { icon: Crown, text: 'Advanced Remy AI assistant' },
-      { icon: Tag, text: 'Tags, folders, and search' },
-      { icon: Calendar, text: 'Google Calendar integration' },
-      { icon: Shield, text: 'Priority support' },
+      '30 notes per month',
+      '300 minutes transcription',
+      'AI transcription & summaries',
+      'Brain Dump synthesis',
+      'Advanced Remy AI',
+      'Tags & folders',
+      'Google Calendar integration',
+      'Priority support',
     ],
+    cta: 'Subscribe',
+    highlighted: false,
+    badge: 'Best Value',
   },
-}
+]
 
 // Loading fallback component
 function LoadingFallback() {
@@ -72,17 +97,9 @@ function SubscribeContent() {
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [processingPlan, setProcessingPlan] = useState(null)
   const [user, setUser] = useState(null)
   const [error, setError] = useState('')
-  const [selectedPlan, setSelectedPlan] = useState('pro')
-
-  // Get plan from URL or default to 'pro'
-  useEffect(() => {
-    const planParam = searchParams.get('plan')
-    if (planParam && PLANS[planParam]) {
-      setSelectedPlan(planParam)
-    }
-  }, [searchParams])
 
   // Check auth and subscription status on mount
   useEffect(() => {
@@ -154,15 +171,23 @@ function SubscribeContent() {
     }
   }, [user, router])
 
-  const handleSubscribe = async () => {
-    setIsProcessing(true)
+  const handleSelectPlan = async (planKey) => {
     setError('')
+    setProcessingPlan(planKey)
+    setIsProcessing(true)
 
     try {
+      // Free plan - go directly to dashboard
+      if (planKey === 'free') {
+        router.push('/dashboard')
+        return
+      }
+
+      // Paid plans - create checkout
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planType: selectedPlan })
+        body: JSON.stringify({ planType: planKey })
       })
 
       const data = await response.json()
@@ -179,10 +204,9 @@ function SubscribeContent() {
       console.error('Checkout error:', err)
       setError(err.message || 'Something went wrong. Please try again.')
       setIsProcessing(false)
+      setProcessingPlan(null)
     }
   }
-
-  const plan = PLANS[selectedPlan]
 
   if (isLoading) {
     return (
@@ -265,9 +289,6 @@ function SubscribeContent() {
         <div className="auth-ring auth-ring-1" style={{ width: 400, height: 400 }} />
         <div className="auth-ring auth-ring-2" style={{ width: 720, height: 720 }} />
         <div className="auth-ring auth-ring-3" style={{ width: 1040, height: 1040 }} />
-        <div className="auth-ring auth-ring-4" style={{ width: 1360, height: 1360 }} />
-        <div className="auth-ring auth-ring-5" style={{ width: 1680, height: 1680 }} />
-        <div className="auth-ring auth-ring-6" style={{ width: 2000, height: 2000 }} />
 
         {/* Dot grid */}
         <div
@@ -285,140 +306,179 @@ function SubscribeContent() {
         <span className="text-xl font-bold tracking-[-0.01em]">Founder Note</span>
       </div>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-12">
+      <main className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-12">
         {/* Hero */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-[-0.01em]">
             Choose your plan
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Unlock the full power of Founder Note
+            Start free or unlock more with a subscription. Upgrade anytime.
           </p>
         </div>
 
-        {/* Plan Selector */}
-        <div className="flex justify-center gap-4 mb-8">
-          {Object.entries(PLANS).map(([key, p]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedPlan(key)}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                selectedPlan === key
-                  ? 'bg-[hsl(355,48%,39%)] text-white shadow-lg'
-                  : 'bg-white/50 text-[#666] hover:bg-white border border-[hsl(34_25%_85%)]'
+        {error && (
+          <div className="max-w-md mx-auto mb-8 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive text-center animate-fade-in">
+            {error}
+          </div>
+        )}
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+          {PLANS.map((plan, index) => (
+            <div
+              key={plan.key}
+              className={`relative rounded-3xl overflow-visible ${
+                plan.highlighted
+                  ? 'text-white shadow-2xl scale-105 z-10'
+                  : 'bg-white border border-[hsl(34_25%_85%)] shadow-lg'
               }`}
+              style={
+                plan.highlighted
+                  ? {
+                      background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
+                    }
+                  : {}
+              }
             >
-              {p.name} - ${p.price}/mo
-            </button>
-          ))}
-        </div>
-
-        {/* Pricing Card */}
-        <div className="max-w-lg mx-auto pt-6">
-          <div
-            className="relative rounded-3xl text-white shadow-2xl overflow-visible"
-            style={{
-              background: 'linear-gradient(135deg, hsl(355, 48%, 39%) 0%, hsl(355, 50%, 30%) 100%)',
-            }}
-          >
-            {/* Badge */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-              <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
-                {selectedPlan === 'plus' ? 'Best Value' : 'Most Popular'}
-              </div>
-            </div>
-
-            {/* Card Content */}
-            <div className="p-10 pt-12">
-              <h3 className="text-2xl font-display mb-1">{plan.name}</h3>
-              <p className="text-white/70 text-sm font-body mb-8">
-                {plan.description}
-              </p>
-
-              <div className="mb-8">
-                <span className="text-6xl font-display">${plan.price}</span>
-                <span className="text-white/70 font-body">/ month</span>
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 rounded-lg bg-white/10 border border-white/20 text-sm text-white animate-fade-in">
-                  {error}
+              {/* Badge */}
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <div
+                    className={`text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body ${
+                      plan.highlighted
+                        ? 'bg-white text-[hsl(355,48%,39%)]'
+                        : 'bg-[hsl(355,48%,39%)] text-white'
+                    }`}
+                  >
+                    {plan.badge}
+                  </div>
                 </div>
               )}
 
-              <Button
-                onClick={handleSubscribe}
-                disabled={isProcessing}
-                className="w-full py-4 h-auto rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 font-body bg-white text-[hsl(355,48%,39%)] hover:bg-white/90 shadow-lg text-lg"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-5 h-5" />
-                    Subscribe to {plan.name}
-                  </>
-                )}
-              </Button>
-
-              {/* Free Trial Highlight */}
-              <div className="mt-4 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-center">
-                <p className="text-white font-semibold text-sm font-body">
-                  Start with a 1-day free trial
+              <div className="p-8 pt-10">
+                <h3
+                  className={`text-2xl font-display mb-1 ${
+                    plan.highlighted ? 'text-white' : 'text-[#1a1a1a]'
+                  }`}
+                >
+                  {plan.name}
+                </h3>
+                <p
+                  className={`text-sm font-body mb-6 ${
+                    plan.highlighted ? 'text-white/70' : 'text-[#666]'
+                  }`}
+                >
+                  {plan.description}
                 </p>
-                <p className="text-white/70 text-xs font-body mt-0.5">
-                  No charge until your trial ends. Cancel anytime.
-                </p>
-              </div>
 
-              {/* Features */}
-              <ul className="mt-10 space-y-4">
-                {plan.features.map((feature, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-3 animate-fade-in"
-                    style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+                <div className="mb-6">
+                  <span
+                    className={`text-5xl font-display ${
+                      plan.highlighted ? 'text-white' : 'text-[#1a1a1a]'
+                    }`}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                      <feature.icon className="w-4 h-4 text-white/90" />
-                    </div>
-                    <span className="text-white/90 text-[15px] font-body">{feature.text}</span>
-                  </li>
-                ))}
-              </ul>
+                    {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                  </span>
+                  {plan.price > 0 && (
+                    <span
+                      className={`font-body ${
+                        plan.highlighted ? 'text-white/70' : 'text-[#666]'
+                      }`}
+                    >
+                      / month
+                    </span>
+                  )}
+                </div>
 
-              {/* Trust badges */}
-              <div className="mt-8 pt-6 border-t border-white/15 flex items-center justify-center gap-4 text-xs text-white/40 font-body">
-                <span className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  Secure checkout
-                </span>
-                <span>·</span>
-                <span>Cancel anytime</span>
-                <span>·</span>
-                <span>Powered by Lemon Squeezy</span>
+                <Button
+                  onClick={() => handleSelectPlan(plan.key)}
+                  disabled={isProcessing}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 font-body ${
+                    plan.highlighted
+                      ? 'bg-white text-[hsl(355,48%,39%)] hover:bg-white/90 shadow-lg'
+                      : 'bg-[hsl(355,48%,39%)] text-white hover:bg-[hsl(355,48%,35%)]'
+                  }`}
+                >
+                  {isProcessing && processingPlan === plan.key ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {plan.key === 'free' ? 'Going to dashboard...' : 'Processing...'}
+                    </>
+                  ) : (
+                    <>
+                      {plan.cta}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+
+                {plan.key === 'free' && (
+                  <p className="text-xs text-center text-muted-foreground mt-3">
+                    No credit card required
+                  </p>
+                )}
+
+                {/* Features */}
+                <ul className="mt-8 space-y-3">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          plan.highlighted
+                            ? 'bg-white/20'
+                            : 'bg-[hsl(355,48%,39%)]/10'
+                        }`}
+                      >
+                        <Check
+                          className={`w-3 h-3 ${
+                            plan.highlighted ? 'text-white' : 'text-[hsl(355,48%,39%)]'
+                          }`}
+                        />
+                      </div>
+                      <span
+                        className={`text-sm font-body ${
+                          plan.highlighted
+                            ? 'text-white/90'
+                            : 'text-[#333]'
+                        }`}
+                      >
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-          </div>
-
-          {/* Compare plans link */}
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            <Link href="/pricing" className="underline hover:text-[hsl(355,48%,39%)] transition-colors">
-              Compare all plans
-            </Link>
-          </p>
-
-          {/* Additional info */}
-          <p className="text-center text-xs text-muted-foreground/50 mt-4 leading-relaxed">
-            By subscribing, you agree to our{' '}
-            <Link href="/terms" className="underline">Terms of Service</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="underline">Privacy Policy</Link>.
-          </p>
+          ))}
         </div>
+
+        {/* Trust badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground font-body">
+          <span className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Secure payment
+          </span>
+          <span>•</span>
+          <span>Cancel anytime</span>
+          <span>•</span>
+          <span>Upgrade whenever you need</span>
+        </div>
+
+        {/* Compare plans link */}
+        <p className="text-center text-sm text-muted-foreground mt-8">
+          <Link href="/pricing" className="underline hover:text-[hsl(355,48%,39%)] transition-colors">
+            See detailed plan comparison
+          </Link>
+        </p>
+
+        {/* Additional info */}
+        <p className="text-center text-xs text-muted-foreground/50 mt-4 leading-relaxed">
+          By continuing, you agree to our{' '}
+          <Link href="/terms" className="underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        </p>
       </main>
     </div>
   )

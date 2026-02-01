@@ -76,8 +76,8 @@ export default function TermsPage() {
       title: '5. Subscription and Payments',
       content: [
         {
-          subtitle: 'Free Trial',
-          text: 'Founder Notes offers a 1-day free trial for new users, providing full access to all features. After the trial period ends, you will be automatically charged the applicable subscription fee unless you cancel before the trial expires.'
+          subtitle: 'Free Tier',
+          text: 'Founder Note offers a free tier that provides limited usage (5 notes and 15 minutes of transcription per month) with access to core features. No credit card is required to use the free tier. You may upgrade to a paid subscription at any time to access higher usage limits and additional features.'
         },
         {
           subtitle: 'Paid Subscriptions',

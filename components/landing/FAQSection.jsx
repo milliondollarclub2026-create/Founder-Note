@@ -23,8 +23,8 @@ export default function FAQSection() {
       answer: 'Not at all. While the name was inspired by the founder mindset of building and organizing ideas, Founder Note is for anyone looking to boost their productivity. Students use it to capture lecture notes and study ideas, professionals use it to stay on top of meetings and tasks, and creatives use it to brainstorm freely. Whether you\'re in a corporate setting, running a side project, or just trying to organize your thoughts, Founder Note is built for you.'
     },
     {
-      question: 'Is there a free trial?',
-      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Note with full access to all features. After the trial ends, plans start at $14.99/month for Pro and $24.99/month for Plus. You can also use our Free tier with 5 notes and 15 minutes of transcription per month. Cancel anytime.'
+      question: 'Can I try it for free?',
+      answer: 'Yes! Our Free tier gives you 5 notes and 15 minutes of transcription per month with full access to AI features, Brain Dump, and Remy assistant. No credit card required. When you need more, upgrade to Pro ($14.99/mo) or Plus ($24.99/mo) anytime.'
     },
     {
       question: 'What languages are supported?',

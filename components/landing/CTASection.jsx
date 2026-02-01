@@ -50,7 +50,7 @@ export default function CTASection() {
           <p className="text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto font-body leading-relaxed">
             {isAuthenticated
               ? 'Continue capturing your ideas and staying productive.'
-              : 'Start with a 1-day free trial. No complex setup. Just tap, speak, and watch the magic happen.'}
+              : 'Start free, no credit card required. Just tap, speak, and watch the magic happen.'}
           </p>
         </motion.div>
 
@@ -88,7 +88,7 @@ export default function CTASection() {
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            1-day free trial &bull; $14.99/mo after &bull; Cancel anytime
+            Free forever plan &bull; Paid plans from $14.99/mo &bull; Upgrade anytime
           </motion.p>
         )}
       </div>
