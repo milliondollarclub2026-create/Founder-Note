@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Trash2, AlertTriangle, Loader2, Shield, Database,
-  XCircle, Mic, Sparkles, MessageCircle, RotateCcw
+  XCircle, Mic, Sparkles, MessageCircle, RotateCcw,
+  ArrowUpRight, Crown, ExternalLink
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,19 +39,46 @@ const UsageBar = ({ label, used, total, unit, percent, warning }) => (
 )
 
 export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData, onDeleteAccount, onCancelSubscription }) => {
+  const router = useRouter()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
+
+  const currentPlan = usage?.plan?.name || 'free'
 
   const resetAllStates = () => {
     setShowClearConfirm(false)
     setShowDeleteConfirm(false)
     setShowCancelConfirm(false)
     setDeleteConfirmText('')
+  }
+
+  const handleUpgrade = (targetPlan) => {
+    onClose()
+    router.push(`/subscribe?plan=${targetPlan}`)
+  }
+
+  const handleManageSubscription = async () => {
+    setIsLoadingPortal(true)
+    try {
+      const response = await fetch('/api/subscription/portal', { method: 'POST' })
+      const data = await response.json()
+
+      if (data.portalUrl) {
+        window.open(data.portalUrl, '_blank')
+      } else {
+        console.error('No portal URL returned')
+      }
+    } catch (error) {
+      console.error('Failed to get subscription portal:', error)
+    } finally {
+      setIsLoadingPortal(false)
+    }
   }
 
   const handleClearData = async () => {
@@ -199,14 +228,78 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                   <div>
                     <p className="text-sm font-semibold text-foreground">{usage?.plan?.displayName || 'Free'} Plan</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {usage?.plan?.name === 'free' ? 'Upgrade for more features' : 'Thank you for subscribing'}
+                      {currentPlan === 'free' ? 'Upgrade for more notes & minutes' :
+                       currentPlan === 'pro' ? '15 notes, 150 min/month' :
+                       '30 notes, 300 min/month + Google Calendar'}
                     </p>
                   </div>
                   <span className="text-xs text-primary font-semibold">
-                    {usage?.plan?.name === 'free' ? 'Free' : usage?.plan?.name === 'plus' ? '$24.99/mo' : '$14.99/mo'}
+                    {currentPlan === 'free' ? 'Free' : currentPlan === 'plus' ? '$24.99/mo' : '$14.99/mo'}
                   </span>
                 </div>
-                {onCancelSubscription && (
+
+                {/* Upgrade options */}
+                {currentPlan === 'free' && (
+                  <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
+                    <Button
+                      onClick={() => handleUpgrade('pro')}
+                      className="w-full h-8 text-xs gap-2"
+                      size="sm"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      Upgrade to Pro - $14.99/mo
+                    </Button>
+                    <Button
+                      onClick={() => handleUpgrade('plus')}
+                      variant="outline"
+                      className="w-full h-8 text-xs gap-2"
+                      size="sm"
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      Upgrade to Plus - $24.99/mo
+                    </Button>
+                  </div>
+                )}
+
+                {currentPlan === 'pro' && (
+                  <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
+                    <Button
+                      onClick={() => handleUpgrade('plus')}
+                      className="w-full h-8 text-xs gap-2"
+                      size="sm"
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      Upgrade to Plus - $24.99/mo
+                    </Button>
+                    <Button
+                      onClick={handleManageSubscription}
+                      variant="outline"
+                      className="w-full h-8 text-xs gap-2"
+                      size="sm"
+                      disabled={isLoadingPortal}
+                    >
+                      {isLoadingPortal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                      Manage Subscription
+                    </Button>
+                  </div>
+                )}
+
+                {currentPlan === 'plus' && (
+                  <div className="mt-3 pt-3 border-t border-border/40">
+                    <Button
+                      onClick={handleManageSubscription}
+                      variant="outline"
+                      className="w-full h-8 text-xs gap-2"
+                      size="sm"
+                      disabled={isLoadingPortal}
+                    >
+                      {isLoadingPortal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                      Manage Subscription
+                    </Button>
+                  </div>
+                )}
+
+                {onCancelSubscription && currentPlan !== 'free' && (
                   <button
                     onClick={() => setShowCancelConfirm(true)}
                     className="mt-3 pt-3 border-t border-border/40 w-full flex items-center gap-2 text-[11px] text-muted-foreground/70 hover:text-muted-foreground transition-colors group"
