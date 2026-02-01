@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { Sparkles, Loader2, Mic, Brain, Tag, MessageCircle, Zap, Shield, CreditCard } from 'lucide-react'
+import { Sparkles, Loader2, Mic, Brain, Tag, MessageCircle, Zap, Shield, CreditCard, Calendar, Crown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 // Create Supabase client
 const createClient = () => {
@@ -14,12 +15,53 @@ const createClient = () => {
   )
 }
 
+// Plan configurations
+const PLANS = {
+  pro: {
+    name: 'Pro',
+    price: 14.99,
+    description: 'Everything you need to capture ideas',
+    features: [
+      { icon: Mic, text: '15 notes and 150 minutes per month' },
+      { icon: Sparkles, text: 'AI transcription and summaries' },
+      { icon: Brain, text: 'Brain Dump synthesis' },
+      { icon: MessageCircle, text: 'Remy AI assistant' },
+      { icon: Tag, text: 'Tags, folders, and search' },
+      { icon: Zap, text: 'Action items and follow-ups' },
+    ],
+  },
+  plus: {
+    name: 'Plus',
+    price: 24.99,
+    description: 'For power users who need more',
+    features: [
+      { icon: Mic, text: '30 notes and 300 minutes per month' },
+      { icon: Sparkles, text: 'AI transcription and summaries' },
+      { icon: Brain, text: 'Brain Dump synthesis' },
+      { icon: Crown, text: 'Advanced Remy AI assistant' },
+      { icon: Tag, text: 'Tags, folders, and search' },
+      { icon: Calendar, text: 'Google Calendar integration' },
+      { icon: Shield, text: 'Priority support' },
+    ],
+  },
+}
+
 export default function SubscribePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [user, setUser] = useState(null)
   const [error, setError] = useState('')
+  const [selectedPlan, setSelectedPlan] = useState('pro')
+
+  // Get plan from URL or default to 'pro'
+  useEffect(() => {
+    const planParam = searchParams.get('plan')
+    if (planParam && PLANS[planParam]) {
+      setSelectedPlan(planParam)
+    }
+  }, [searchParams])
 
   // Check auth and subscription status on mount
   useEffect(() => {
@@ -99,7 +141,7 @@ export default function SubscribePage() {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, email: user.email })
+        body: JSON.stringify({ planType: selectedPlan })
       })
 
       const data = await response.json()
@@ -118,6 +160,8 @@ export default function SubscribePage() {
       setIsProcessing(false)
     }
   }
+
+  const plan = PLANS[selectedPlan]
 
   if (isLoading) {
     return (
@@ -196,7 +240,7 @@ export default function SubscribePage() {
           style={{ background: 'hsl(25 45% 50% / 0.1)' }}
         />
 
-        {/* Concentric rings — doubled size for full-page layout */}
+        {/* Concentric rings */}
         <div className="auth-ring auth-ring-1" style={{ width: 400, height: 400 }} />
         <div className="auth-ring auth-ring-2" style={{ width: 720, height: 720 }} />
         <div className="auth-ring auth-ring-3" style={{ width: 1040, height: 1040 }} />
@@ -222,16 +266,33 @@ export default function SubscribePage() {
 
       <main className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-12">
         {/* Hero */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-[-0.01em]">
-            Shape Founder Note with us.
+            Choose your plan
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Join the beta. Get early access and a price that stays.
+            Unlock the full power of Founder Note
           </p>
         </div>
 
-        {/* Pricing Card - Matching pricing page style */}
+        {/* Plan Selector */}
+        <div className="flex justify-center gap-4 mb-8">
+          {Object.entries(PLANS).map(([key, p]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedPlan(key)}
+              className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                selectedPlan === key
+                  ? 'bg-[hsl(355,48%,39%)] text-white shadow-lg'
+                  : 'bg-white/50 text-[#666] hover:bg-white border border-[hsl(34_25%_85%)]'
+              }`}
+            >
+              {p.name} - ${p.price}/mo
+            </button>
+          ))}
+        </div>
+
+        {/* Pricing Card */}
         <div className="max-w-lg mx-auto pt-6">
           <div
             className="relative rounded-3xl text-white shadow-2xl overflow-visible"
@@ -242,23 +303,20 @@ export default function SubscribePage() {
             {/* Badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
               <div className="bg-white text-[hsl(355,48%,39%)] text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg font-body">
-                Limited Beta
+                {selectedPlan === 'plus' ? 'Best Value' : 'Most Popular'}
               </div>
             </div>
 
             {/* Card Content */}
             <div className="p-10 pt-12">
-              <h3 className="text-2xl font-display mb-1">Beta Plan</h3>
+              <h3 className="text-2xl font-display mb-1">{plan.name}</h3>
               <p className="text-white/70 text-sm font-body mb-8">
-                Everything you need to capture and organize your ideas.
+                {plan.description}
               </p>
 
               <div className="mb-8">
-                <span className="text-6xl font-display">$14.99</span>
+                <span className="text-6xl font-display">${plan.price}</span>
                 <span className="text-white/70 font-body">/ month</span>
-                <p className="text-white/50 text-sm font-body mt-2">
-                  Locked in. Price increases at launch.
-                </p>
               </div>
 
               {error && (
@@ -280,7 +338,7 @@ export default function SubscribePage() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    Join the beta
+                    Subscribe to {plan.name}
                   </>
                 )}
               </Button>
@@ -297,15 +355,7 @@ export default function SubscribePage() {
 
               {/* Features */}
               <ul className="mt-10 space-y-4">
-                {[
-                  { icon: Mic, text: '10 notes and 100 minutes per month' },
-                  { icon: Sparkles, text: 'AI transcription and summaries' },
-                  { icon: Brain, text: 'Brain Dump synthesis' },
-                  { icon: MessageCircle, text: 'Remy, your personal AI assistant' },
-                  { icon: Tag, text: 'Tags, folders, and search' },
-                  { icon: Zap, text: 'Action items and follow-ups' },
-                  { icon: Shield, text: 'Early adopter pricing, locked in' },
-                ].map((feature, i) => (
+                {plan.features.map((feature, i) => (
                   <li
                     key={i}
                     className="flex items-center gap-3 animate-fade-in"
@@ -333,9 +383,19 @@ export default function SubscribePage() {
             </div>
           </div>
 
+          {/* Compare plans link */}
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            <Link href="/pricing" className="underline hover:text-[hsl(355,48%,39%)] transition-colors">
+              Compare all plans
+            </Link>
+          </p>
+
           {/* Additional info */}
-          <p className="text-center text-xs text-muted-foreground/50 mt-6 leading-relaxed">
-            By subscribing, you agree to our Terms of Service and Privacy Policy.
+          <p className="text-center text-xs text-muted-foreground/50 mt-4 leading-relaxed">
+            By subscribing, you agree to our{' '}
+            <Link href="/terms" className="underline">Terms of Service</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="underline">Privacy Policy</Link>.
           </p>
         </div>
       </main>

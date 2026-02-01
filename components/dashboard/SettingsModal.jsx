@@ -129,9 +129,11 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold truncate">{displayName}</p>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider flex-shrink-0">
-                    Beta
-                  </span>
+                  {usage?.plan?.displayName && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider flex-shrink-0">
+                      {usage.plan.displayName}
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>
               </div>
@@ -195,10 +197,14 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
               <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Beta Plan</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">Early adopter pricing, locked in</p>
+                    <p className="text-sm font-semibold text-foreground">{usage?.plan?.displayName || 'Free'} Plan</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {usage?.plan?.name === 'free' ? 'Upgrade for more features' : 'Thank you for subscribing'}
+                    </p>
                   </div>
-                  <span className="text-xs text-primary font-semibold">$14.99/mo</span>
+                  <span className="text-xs text-primary font-semibold">
+                    {usage?.plan?.name === 'free' ? 'Free' : usage?.plan?.name === 'plus' ? '$24.99/mo' : '$14.99/mo'}
+                  </span>
                 </div>
                 {onCancelSubscription && (
                   <button

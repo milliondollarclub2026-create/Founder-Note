@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-
-const TRANSCRIPTION_LIMIT_SECONDS = 6000; // 100 minutes
+import { getUserLimits } from '@/lib/plan-tiers';
 
 export async function POST(request) {
   try {
     const { getAuthenticatedUser } = await import('@/lib/supabase-server');
     const { user, supabase } = await getAuthenticatedUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Get dynamic limits based on user's plan
+    const limits = await getUserLimits(supabase, user.id);
 
     // Check transcription limit before processing
     const { data: profile } = await supabase
@@ -16,9 +18,15 @@ export async function POST(request) {
       .single();
 
     const secondsUsed = profile?.transcription_seconds_used || 0;
-    if (secondsUsed >= TRANSCRIPTION_LIMIT_SECONDS) {
+    const remainingSeconds = Math.max(0, limits.transcription_seconds - secondsUsed);
+
+    if (secondsUsed >= limits.transcription_seconds) {
       return NextResponse.json(
-        { error: 'Transcription limit reached. Your beta plan allows 100 minutes.', code: 'TRANSCRIPTION_LIMIT' },
+        {
+          error: `Transcription limit reached. Your ${limits.display_name} plan allows ${limits.transcription_minutes} minutes.`,
+          code: 'TRANSCRIPTION_LIMIT',
+          remainingSeconds: 0,
+        },
         { status: 403 }
       );
     }
@@ -53,9 +61,24 @@ export async function POST(request) {
     const transcript = result?.results?.channels?.[0]?.alternatives?.[0]?.transcript || '';
     const duration = result?.metadata?.duration || 0;
 
+    // Edge case fix: Check if this recording would exceed the limit
+    const newTotal = secondsUsed + Math.ceil(duration);
+    if (newTotal > limits.transcription_seconds) {
+      const overageSeconds = newTotal - limits.transcription_seconds;
+      const overageMinutes = Math.ceil(overageSeconds / 60);
+      return NextResponse.json(
+        {
+          error: `This recording (${Math.ceil(duration / 60)} min) exceeds your remaining time by ${overageMinutes} minute${overageMinutes > 1 ? 's' : ''}. Please record a shorter note.`,
+          code: 'TRANSCRIPTION_EXCEEDED',
+          remainingSeconds: remainingSeconds,
+          recordingDuration: Math.ceil(duration),
+        },
+        { status: 403 }
+      );
+    }
+
     // Increment transcription seconds used
     if (duration > 0) {
-      const newTotal = secondsUsed + Math.ceil(duration);
       await supabase
         .from('user_profiles')
         .update({ transcription_seconds_used: newTotal })
@@ -67,6 +90,7 @@ export async function POST(request) {
       transcription: transcript,
       confidence: result?.results?.channels?.[0]?.alternatives?.[0]?.confidence,
       duration,
+      remainingSeconds: Math.max(0, limits.transcription_seconds - newTotal),
     });
   } catch (error) {
     console.error('API Error:', error);

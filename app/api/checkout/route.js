@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
 
+// Map plan types to Lemon Squeezy variant IDs
+// Pro uses the existing variant ID for backwards compatibility
+const PLAN_VARIANTS = {
+  pro: process.env.LEMON_SQUEEZY_VARIANT_ID || process.env.LEMON_SQUEEZY_PRO_VARIANT_ID,
+  plus: process.env.LEMON_SQUEEZY_PLUS_VARIANT_ID,
+};
+
 export async function POST(request) {
   try {
     const { user } = await getAuthenticatedUser();
@@ -10,14 +17,23 @@ export async function POST(request) {
     const userId = user.id;
     const email = user.email;
 
+    // Get plan type from request body (default to 'pro' for backwards compatibility)
+    const body = await request.json().catch(() => ({}));
+    const planType = body.planType || 'pro';
+
+    // Validate plan type
+    if (!['pro', 'plus'].includes(planType)) {
+      return NextResponse.json({ error: 'Invalid plan type. Must be "pro" or "plus".' }, { status: 400 });
+    }
+
     const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-    const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
+    const variantId = PLAN_VARIANTS[planType];
     const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
 
     if (!storeId || !variantId || !apiKey) {
       const missing = [
         !storeId && 'LEMON_SQUEEZY_STORE_ID',
-        !variantId && 'LEMON_SQUEEZY_VARIANT_ID',
+        !variantId && `LEMON_SQUEEZY_${planType.toUpperCase()}_VARIANT_ID`,
         !apiKey && 'LEMON_SQUEEZY_API_KEY',
       ].filter(Boolean)
       console.error('Missing Lemon Squeezy configuration:', missing.join(', '));

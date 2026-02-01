@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
+import { getUserLimits } from '@/lib/plan-tiers';
 import { v4 as uuidv4 } from 'uuid';
 
 // GET /api/notes - List notes for authenticated user
@@ -56,15 +57,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'transcription required' }, { status: 400 });
     }
 
-    // Beta limit: 10 notes max
+    // Get dynamic limits based on user's plan
+    const limits = await getUserLimits(supabase, user.id);
+
+    // Check note limit
     const { count: noteCount, error: countError } = await supabase
       .from('notes')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
-    if (!countError && noteCount >= 10) {
+    if (!countError && noteCount >= limits.note_limit) {
       return NextResponse.json(
-        { error: 'Note limit reached. Your beta plan allows 10 notes.', code: 'NOTE_LIMIT' },
+        { error: `Note limit reached. Your ${limits.display_name} plan allows ${limits.note_limit} notes.`, code: 'NOTE_LIMIT' },
         { status: 403 }
       );
     }

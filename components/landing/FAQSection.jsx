@@ -24,11 +24,15 @@ export default function FAQSection() {
     },
     {
       question: 'Is there a free trial?',
-      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Note with full access to all features. After the trial ends, the beta plan is $14.99/month and that price is locked in for early adopters even after launch. You can cancel anytime.'
+      answer: 'Yes! Every new user gets a 1-day free trial to explore Founder Note with full access to all features. After the trial ends, plans start at $14.99/month for Pro and $24.99/month for Plus. You can also use our Free tier with 5 notes and 15 minutes of transcription per month. Cancel anytime.'
     },
     {
       question: 'What languages are supported?',
-      answer: 'Currently, we only support English. However, we are actively working on adding support for additional languages, which will be available once our beta testing phase is complete.'
+      answer: 'Currently, we support English with high accuracy transcription. We are actively working on adding support for additional languages in future updates.'
+    },
+    {
+      question: 'Is my data secure?',
+      answer: 'Absolutely. All your data is encrypted both in transit and at rest using industry-standard encryption. We never access, read, or analyze your personal content - your voice recordings, transcriptions, and notes remain completely private. Your data is securely stored with enterprise-grade infrastructure, and you maintain full control to export or delete your data at any time.'
     },
     {
       question: 'How does the AI analysis work?',

@@ -29,8 +29,8 @@ export default function TermsPage() {
           text: 'We strive to maintain high availability of our service but do not guarantee uninterrupted access. We may modify, suspend, or discontinue any part of the service at any time with reasonable notice to users.'
         },
         {
-          subtitle: 'Beta Services',
-          text: 'Certain features may be offered as beta or early access. These features are provided "as is" and may be modified or discontinued at any time. Beta users acknowledge that these features may contain bugs or errors.'
+          subtitle: 'New Features',
+          text: 'Certain features may be offered as early access. These features are provided "as is" and may be modified or discontinued at any time. Users acknowledge that new features may be refined over time.'
         }
       ]
     },
@@ -85,7 +85,7 @@ export default function TermsPage() {
         },
         {
           subtitle: 'Price Changes',
-          text: 'We reserve the right to modify subscription prices with 30 days notice. Price changes will not affect current billing periods. Beta and founding member pricing may be grandfathered at the discretion of Founder Notes.'
+          text: 'We reserve the right to modify subscription prices with 30 days notice. Price changes will not affect current billing periods. Founding member pricing may be grandfathered at the discretion of Founder Notes.'
         },
         {
           subtitle: 'Cancellation',
@@ -132,7 +132,7 @@ export default function TermsPage() {
         },
         {
           subtitle: 'AI-Generated Content',
-          text: 'AI-powered features, including categorization, summarization, and insights, are provided for informational purposes only. Since we are still in the beta stage, we do not guarantee the accuracy, completeness, or usefulness of AI-generated content.'
+          text: 'AI-powered features, including categorization, summarization, and insights, are provided for informational purposes only. We do not guarantee the accuracy, completeness, or usefulness of AI-generated content. Users should review and verify AI-generated content before relying on it.'
         }
       ]
     },

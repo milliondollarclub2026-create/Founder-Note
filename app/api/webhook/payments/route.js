@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase';
+import { getPlanNameByVariantId } from '@/lib/plan-tiers';
 
 export async function POST(request) {
   const rawBody = await request.text();
@@ -46,6 +47,10 @@ export async function POST(request) {
 
       const supabase = createAdminClient();
 
+      // Get plan name from variant ID
+      const variantId = subscriptionData.attributes?.variant_id?.toString();
+      const planName = await getPlanNameByVariantId(supabase, variantId);
+
       // Update user subscription status
       const { error: updateError } = await supabase
         .from('user_profiles')
@@ -56,7 +61,8 @@ export async function POST(request) {
           subscription_created_at: subscriptionData.attributes?.created_at,
           subscription_renews_at: subscriptionData.attributes?.renews_at,
           subscription_ends_at: subscriptionData.attributes?.ends_at,
-          subscription_variant_id: subscriptionData.attributes?.variant_id?.toString(),
+          subscription_variant_id: variantId,
+          plan_name: planName,
         })
         .eq('user_id', customData.user_id);
 
@@ -81,6 +87,7 @@ export async function POST(request) {
           .update({
             subscription_status: 'cancelled',
             subscription_ends_at: subscriptionData.attributes?.ends_at,
+            plan_name: 'free', // Revert to free tier on cancellation
           })
           .eq('user_id', customData.user_id);
 

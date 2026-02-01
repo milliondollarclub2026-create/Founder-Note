@@ -218,19 +218,20 @@ export default function Dashboard() {
   // Show usage warning toasts
   useEffect(() => {
     if (!usage) return
+    const planName = usage.plan?.displayName || 'your'
     if (usage.warnings.notesMax) {
-      toast.warning('You\'ve reached the 10 note limit on your beta plan.')
+      toast.warning(`You've reached the ${usage.notes.limit} note limit on your ${planName} plan.`)
     } else if (usage.warnings.notes90) {
-      toast.warning('You\'ve used 9 of 10 notes on your beta plan.')
+      toast.warning(`You've used ${usage.notes.used} of ${usage.notes.limit} notes on your ${planName} plan.`)
     } else if (usage.warnings.notes80) {
-      toast('You\'ve used 8 of 10 notes on your beta plan.', { icon: '📝' })
+      toast(`You've used ${usage.notes.used} of ${usage.notes.limit} notes on your ${planName} plan.`, { icon: '📝' })
     }
     if (usage.warnings.transMax) {
-      toast.warning('You\'ve reached the 100 minute transcription limit on your beta plan.')
+      toast.warning(`You've reached the ${usage.transcription.limitMinutes} minute transcription limit on your ${planName} plan.`)
     } else if (usage.warnings.trans90) {
-      toast.warning('You\'re at 90% of your 100 minute transcription limit.')
+      toast.warning(`You're at 90% of your ${usage.transcription.limitMinutes} minute transcription limit.`)
     } else if (usage.warnings.trans80) {
-      toast('You\'re at 80% of your 100 minute transcription limit.', { icon: '🎙️' })
+      toast(`You're at 80% of your ${usage.transcription.limitMinutes} minute transcription limit.`, { icon: '🎙️' })
     }
   }, [usage?.notes?.used, usage?.transcription?.usedSeconds])
 
@@ -615,14 +616,24 @@ export default function Dashboard() {
   }
 
   const startRecording = async () => {
+    const planName = usage?.plan?.displayName || 'your'
     // Check note limit before recording
     if (usage?.warnings?.notesMax) {
-      toast.error('Note limit reached. Your beta plan allows 10 notes.')
+      toast.error(`Note limit reached. Your ${planName} plan allows ${usage.notes.limit} notes.`)
       return
     }
     if (usage?.warnings?.transMax) {
-      toast.error('Transcription limit reached. Your beta plan allows 100 minutes.')
+      toast.error(`Transcription limit reached. Your ${planName} plan allows ${usage.transcription.limitMinutes} minutes.`)
       return
+    }
+    // Warn if low on transcription time
+    const remainingMinutes = usage?.transcription?.remainingMinutes || 0
+    if (remainingMinutes < 1 && remainingMinutes >= 0) {
+      toast.error('Less than 1 minute of transcription time remaining.')
+      return
+    }
+    if (remainingMinutes <= 5 && remainingMinutes >= 1) {
+      toast.warning(`Only ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''} of recording time remaining.`)
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -635,7 +646,19 @@ export default function Dashboard() {
       setIsRecording(true)
       setRecordingDuration(0)
       const startTime = Date.now()
-      recordingTimerRef.current = setInterval(() => { setRecordingDuration(Math.floor((Date.now() - startTime) / 1000)) }, 1000)
+      const remainingSeconds = usage?.transcription?.remainingSeconds || Infinity
+      recordingTimerRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000)
+        setRecordingDuration(elapsed)
+        // Auto-stop if approaching limit
+        if (remainingSeconds !== Infinity && elapsed >= remainingSeconds - 5) {
+          toast.warning('Approaching transcription limit. Recording will stop soon.')
+        }
+        if (remainingSeconds !== Infinity && elapsed >= remainingSeconds) {
+          toast.error('Transcription limit reached. Stopping recording.')
+          stopRecording()
+        }
+      }, 1000)
     } catch (error) { toast.error('Please allow microphone access') }
   }
 
@@ -1512,7 +1535,7 @@ export default function Dashboard() {
                   </p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/70 font-medium">
-                      Beta
+                      {usage?.plan?.displayName || 'Free'}
                     </span>
                   </div>
                 </div>
@@ -1531,7 +1554,7 @@ export default function Dashboard() {
                   {authUser?.email}
                 </p>
                 <span className="inline-flex items-center mt-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/70 font-medium">
-                  Beta Plan
+                  {usage?.plan?.displayName || 'Free'} Plan
                 </span>
                 {usage && (
                   <div className="mt-3 space-y-2">

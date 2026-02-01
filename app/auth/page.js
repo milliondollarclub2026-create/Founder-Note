@@ -196,7 +196,7 @@ const MainEntryView = ({ onGoogleSignIn, onEmailSignIn, isLoading }) => {
         </p>
       </div>
 
-      {/* Google Sign In - Disabled during beta, shows toast only */}
+      {/* Google Sign In */}
       <Button
         type="button"
         onClick={(e) => {
@@ -801,12 +801,27 @@ function AuthPageContent() {
     }
   }, [searchParams])
   
-  // Handle Google Sign In — fully disabled during beta, no OAuth call
-  const handleGoogleSignIn = () => {
-    toast('Google sign-in will be available after the beta phase. Please use email for now.', {
-      duration: 4000,
-    })
-    return false
+  // Handle Google Sign In
+  const handleGoogleSignIn = async () => {
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) {
+        toast.error('Failed to sign in with Google. Please try again.')
+        console.error('Google sign in error:', error)
+      }
+    } catch (err) {
+      toast.error('Failed to sign in with Google. Please try again.')
+      console.error('Google sign in error:', err)
+    }
   }
   
   const handleSignupSuccess = (email) => {
