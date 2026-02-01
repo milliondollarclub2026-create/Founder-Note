@@ -526,6 +526,12 @@ export default function Dashboard() {
 
   // Delete Account handler
   const handleDeleteAccount = async () => {
+    // Set up a fallback redirect in case signOut or navigation fails
+    const fallbackTimer = setTimeout(() => {
+      console.warn('Delete account fallback redirect triggered')
+      window.location.href = '/'
+    }, 4000)
+
     try {
       const response = await fetch('/api/user/delete-account', {
         method: 'DELETE',
@@ -536,16 +542,21 @@ export default function Dashboard() {
       const data = await response.json()
 
       if (!response.ok) {
+        clearTimeout(fallbackTimer)
         throw new Error(data.error || 'Failed to delete account')
       }
 
-      // Sign out locally and redirect
+      // Sign out locally
       const supabase = createClient()
       await supabase.auth.signOut()
 
       toast.success('Account deleted successfully')
-      router.push('/auth')
+
+      // Use hard redirect instead of router.push for reliability after auth state change
+      clearTimeout(fallbackTimer)
+      window.location.href = '/'
     } catch (error) {
+      clearTimeout(fallbackTimer)
       console.error('Delete account error:', error)
       toast.error(error.message || 'Failed to delete account')
       throw error
