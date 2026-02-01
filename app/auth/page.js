@@ -314,14 +314,18 @@ const EmailLoginForm = ({ onBack, onForgotPassword, onSignupSwitch, animClass = 
       // but use maybeSingle() in case it hasn't propagated yet
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, subscription_status, plan_name')
         .eq('user_id', data.user.id)
         .maybeSingle()
 
       if (!profile || !profile.onboarding_completed) {
         router.push('/onboarding')
-      } else {
+      } else if (profile.subscription_status === 'active' || profile.plan_name) {
+        // User has active subscription OR has chosen a plan (including free)
         router.push('/dashboard')
+      } else {
+        // Onboarding done but no plan selection yet - show plan selection
+        router.push('/subscribe')
       }
     } catch (err) {
       console.error('Login error:', err)

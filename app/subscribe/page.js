@@ -114,15 +114,15 @@ function SubscribeContent() {
 
       setUser(user)
 
-      // Check if user is already subscribed
+      // Check if user is already subscribed or has chosen a plan
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('subscription_status, onboarding_completed')
+        .select('subscription_status, onboarding_completed, plan_name')
         .eq('user_id', user.id)
         .maybeSingle()
 
-      if (profile?.subscription_status === 'active') {
-        // Already subscribed, go to dashboard
+      if (profile?.subscription_status === 'active' || profile?.plan_name) {
+        // Already subscribed or has chosen a plan (including free), go to dashboard
         router.push('/dashboard')
         return
       }
@@ -177,8 +177,15 @@ function SubscribeContent() {
     setIsProcessing(true)
 
     try {
-      // Free plan - go directly to dashboard
+      // Free plan - mark selection and go to dashboard
       if (planKey === 'free') {
+        const supabase = createClient()
+        // Set plan_name to 'free' to indicate user has made their choice
+        await supabase
+          .from('user_profiles')
+          .update({ plan_name: 'free' })
+          .eq('user_id', user.id)
+
         router.push('/dashboard')
         return
       }
