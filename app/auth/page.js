@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
-import { Eye, EyeOff, Check, X, Loader2, Lock, Mail, User, Sparkles, ArrowLeft, ArrowRight, Chrome } from 'lucide-react'
+import { Eye, EyeOff, Check, X, Loader2, Lock, Mail, User, ArrowLeft, ArrowRight, Chrome } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -88,15 +88,6 @@ const BrandPanel = () => {
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-center px-16 max-w-lg mx-auto">
         <div className="mb-10">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-7 border shadow-sm"
-            style={{
-              background: 'hsl(355 48% 39% / 0.08)',
-              borderColor: 'hsl(355 48% 39% / 0.15)',
-              backdropFilter: 'blur(4px)'
-            }}
-          >
-            <Sparkles className="w-7 h-7 text-primary" />
-          </div>
           <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight tracking-[-0.01em]">
             Speak your ideas.<br />
             <span className="text-primary/80">{"We'll organize them."}</span>
