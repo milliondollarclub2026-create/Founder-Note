@@ -5,12 +5,29 @@ import { useRouter } from 'next/navigation'
 import {
   Trash2, AlertTriangle, Loader2, Shield, Database,
   XCircle, Mic, Sparkles, MessageCircle, RotateCcw,
-  ArrowUpRight, Crown, ExternalLink
+  ArrowUpRight, Crown, Check, Calendar, Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+
+const PLAN_DETAILS = {
+  pro: {
+    name: 'Pro',
+    price: '$14.99',
+    notes: 15,
+    minutes: 150,
+    features: ['15 notes per month', '150 min transcription', 'AI summaries & key points', 'Brain Dump synthesis', 'Remy AI assistant', 'Tags & folders'],
+  },
+  plus: {
+    name: 'Plus',
+    price: '$24.99',
+    notes: 30,
+    minutes: 300,
+    features: ['30 notes per month', '300 min transcription', 'AI summaries & key points', 'Brain Dump synthesis', 'Advanced Remy AI', 'Tags & folders', 'Google Calendar integration', 'Priority support'],
+  },
+}
 
 const UsageBar = ({ label, used, total, unit, percent, warning }) => (
   <div>
@@ -43,10 +60,13 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showUpgradeConfirm, setShowUpgradeConfirm] = useState(false)
+  const [targetUpgradePlan, setTargetUpgradePlan] = useState(null)
   const [isClearing, setIsClearing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
-  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState(null)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
   const currentPlan = usage?.plan?.name || 'free'
@@ -55,29 +75,59 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
     setShowClearConfirm(false)
     setShowDeleteConfirm(false)
     setShowCancelConfirm(false)
+    setShowUpgradeConfirm(false)
+    setTargetUpgradePlan(null)
+    setUpgradeError(null)
     setDeleteConfirmText('')
   }
 
-  const handleUpgrade = (targetPlan) => {
-    onClose()
-    router.push(`/subscribe?plan=${targetPlan}`)
+  const handleUpgradeClick = (targetPlan) => {
+    setTargetUpgradePlan(targetPlan)
+    setUpgradeError(null)
+    setShowUpgradeConfirm(true)
   }
 
-  const handleManageSubscription = async () => {
-    setIsLoadingPortal(true)
+  const handleUpgradeConfirm = async () => {
+    if (!targetUpgradePlan) return
+
+    // For free users, redirect to checkout
+    if (currentPlan === 'free') {
+      onClose()
+      router.push(`/subscribe?plan=${targetUpgradePlan}`)
+      return
+    }
+
+    // For existing subscribers, use the upgrade API
+    setIsUpgrading(true)
+    setUpgradeError(null)
+
     try {
-      const response = await fetch('/api/subscription/portal', { method: 'POST' })
+      const response = await fetch('/api/subscription/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPlan: targetUpgradePlan }),
+      })
+
       const data = await response.json()
 
-      if (data.portalUrl) {
-        window.open(data.portalUrl, '_blank')
-      } else {
-        console.error('No portal URL returned')
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upgrade subscription')
       }
+
+      if (data.action === 'checkout') {
+        // Redirect to checkout if needed
+        onClose()
+        router.push(data.checkoutUrl)
+        return
+      }
+
+      // Success! Refresh the page to show new plan
+      window.location.reload()
     } catch (error) {
-      console.error('Failed to get subscription portal:', error)
+      console.error('Upgrade error:', error)
+      setUpgradeError(error.message)
     } finally {
-      setIsLoadingPortal(false)
+      setIsUpgrading(false)
     }
   }
 
@@ -129,7 +179,7 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User'
   const initial = (displayName[0] || user?.email?.[0] || 'U').toUpperCase()
-  const isMainView = !showClearConfirm && !showDeleteConfirm && !showCancelConfirm
+  const isMainView = !showClearConfirm && !showDeleteConfirm && !showCancelConfirm && !showUpgradeConfirm
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -242,7 +292,7 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                 {currentPlan === 'free' && (
                   <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
                     <Button
-                      onClick={() => handleUpgrade('pro')}
+                      onClick={() => handleUpgradeClick('pro')}
                       className="w-full h-8 text-xs gap-2"
                       size="sm"
                     >
@@ -250,7 +300,7 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                       Upgrade to Pro - $14.99/mo
                     </Button>
                     <Button
-                      onClick={() => handleUpgrade('plus')}
+                      onClick={() => handleUpgradeClick('plus')}
                       variant="outline"
                       className="w-full h-8 text-xs gap-2"
                       size="sm"
@@ -262,39 +312,14 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                 )}
 
                 {currentPlan === 'pro' && (
-                  <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
+                  <div className="mt-3 pt-3 border-t border-border/40">
                     <Button
-                      onClick={() => handleUpgrade('plus')}
+                      onClick={() => handleUpgradeClick('plus')}
                       className="w-full h-8 text-xs gap-2"
                       size="sm"
                     >
                       <Crown className="w-3.5 h-3.5" />
                       Upgrade to Plus - $24.99/mo
-                    </Button>
-                    <Button
-                      onClick={handleManageSubscription}
-                      variant="outline"
-                      className="w-full h-8 text-xs gap-2"
-                      size="sm"
-                      disabled={isLoadingPortal}
-                    >
-                      {isLoadingPortal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
-                      Manage Subscription
-                    </Button>
-                  </div>
-                )}
-
-                {currentPlan === 'plus' && (
-                  <div className="mt-3 pt-3 border-t border-border/40">
-                    <Button
-                      onClick={handleManageSubscription}
-                      variant="outline"
-                      className="w-full h-8 text-xs gap-2"
-                      size="sm"
-                      disabled={isLoadingPortal}
-                    >
-                      {isLoadingPortal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
-                      Manage Subscription
                     </Button>
                   </div>
                 )}
@@ -340,6 +365,88 @@ export const SettingsModal = ({ open, onClose, user, profile, usage, onClearData
                   <span className="ml-auto text-[10px] text-muted-foreground/40 font-normal">Permanent</span>
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Upgrade Confirmation */}
+        {showUpgradeConfirm && targetUpgradePlan && (
+          <div className="px-6 py-5 space-y-4 animate-fade-in">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Crown className="w-4.5 h-4.5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    Upgrade to {PLAN_DETAILS[targetUpgradePlan]?.name}
+                  </p>
+                  <p className="text-[12px] text-muted-foreground mt-1">
+                    {PLAN_DETAILS[targetUpgradePlan]?.price}/month
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* What you'll get */}
+            <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                What's included
+              </p>
+              <ul className="space-y-2">
+                {PLAN_DETAILS[targetUpgradePlan]?.features.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-[12px] text-foreground">
+                    <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-2.5 h-2.5 text-primary" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Proration notice for existing subscribers */}
+            {currentPlan !== 'free' && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="flex items-start gap-2.5">
+                  <Zap className="w-3.5 h-3.5 text-primary/60 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[12px] text-foreground font-medium">Instant upgrade</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Your new plan takes effect immediately. You'll be charged the prorated difference for the remainder of your billing period.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {upgradeError && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-[12px] text-destructive">{upgradeError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowUpgradeConfirm(false)
+                  setTargetUpgradePlan(null)
+                  setUpgradeError(null)
+                }}
+                className="flex-1 h-9 text-xs"
+                disabled={isUpgrading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpgradeConfirm}
+                disabled={isUpgrading}
+                className="flex-1 h-9 text-xs"
+              >
+                {isUpgrading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <ArrowUpRight className="w-3.5 h-3.5 mr-1.5" />}
+                {currentPlan === 'free' ? 'Continue to Checkout' : 'Upgrade Now'}
+              </Button>
             </div>
           </div>
         )}
