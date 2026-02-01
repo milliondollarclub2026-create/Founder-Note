@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { Sparkles, Loader2, Mic, Brain, Tag, MessageCircle, Zap, Shield, CreditCard, Calendar, Crown, Check } from 'lucide-react'
@@ -46,7 +46,28 @@ const PLANS = {
   },
 }
 
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: 'linear-gradient(135deg, hsl(34 42% 92%) 0%, hsl(34 35% 89%) 50%, hsl(34 40% 91%) 100%)' }}
+    >
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  )
+}
+
+// Main page wrapper with Suspense
 export default function SubscribePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SubscribeContent />
+    </Suspense>
+  )
+}
+
+function SubscribeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
