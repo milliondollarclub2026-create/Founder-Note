@@ -123,11 +123,9 @@ export default function Dashboard() {
           return
         }
 
-        // Check if subscription is active
-        if (profile.subscription_status !== 'active') {
-          router.push('/subscribe')
-          return
-        }
+        // Note: We allow all users who completed onboarding to access the dashboard
+        // Plan limits (notes, transcription) are enforced at the API level
+        // Free users can use the app with their tier limits
       } else {
         // No profile exists yet, send to onboarding
         router.push('/onboarding')
